@@ -11,7 +11,7 @@
     "files": [
         "README.md",
         "main.blocks",
-        "main.ts"
+        "PTKidsBITRobotPRO.ts"
     ],
     "testFiles": [
         "test.ts"
