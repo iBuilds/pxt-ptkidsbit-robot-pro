@@ -98,7 +98,23 @@ enum ADC_Read {
     //% block="6"
     ADC6 = 0xB4,
     //% block="7"
-    ADC7 = 0xF4
+    ADC7 = 0xF4,
+    //% block="8"
+    ADC8 = 0x8C,
+    //% block="9"
+    ADC9 = 0xCC,
+    //% block="10"
+    ADC10 = 0x9C,
+    //% block="11"
+    ADC11 = 0xDC,
+    //% block="12"
+    ADC12 = 0xAC,
+    //% block="13"
+    ADC13 = 0xEC,
+    //% block="14"
+    ADC14 = 0xBC,
+    //% block="15"
+    ADC15 = 0xFC
 }
 
 enum Forward_Direction {
@@ -728,7 +744,15 @@ namespace PTKidsBITRobotPRO {
             ADC_Read.ADC4,
             ADC_Read.ADC5,
             ADC_Read.ADC6,
-            ADC_Read.ADC7
+            ADC_Read.ADC7,
+            ADC_Read.ADC8,
+            ADC_Read.ADC9,
+            ADC_Read.ADC10,
+            ADC_Read.ADC11,
+            ADC_Read.ADC12,
+            ADC_Read.ADC13,
+            ADC_Read.ADC14,
+            ADC_Read.ADC15
         ]
 
         for (let i = 0; i < Sensor_All_PIN.length; i++) {
@@ -1019,8 +1043,14 @@ namespace PTKidsBITRobotPRO {
      */
     //% block="ADCRead %ADC_Read"
     export function ADCRead(ADCRead: ADC_Read): number {
-        pins.i2cWriteNumber(0x48, ADCRead, NumberFormat.UInt8LE, false)
-        return ADCRead = pins.i2cReadNumber(0x48, NumberFormat.UInt16BE, false)
+        if (ADCRead == ADC_Read.ADC0 || ADCRead == ADC_Read.ADC1 || ADCRead == ADC_Read.ADC2 || ADCRead == ADC_Read.ADC3 || ADCRead == ADC_Read.ADC4 || ADCRead == ADC_Read.ADC5 || ADCRead == ADC_Read.ADC6 || ADCRead == ADC_Read.ADC7) {
+            pins.i2cWriteNumber(0x48, ADCRead, NumberFormat.UInt8LE, false)
+            return ADCRead = pins.i2cReadNumber(0x48, NumberFormat.UInt16BE, false)
+        }
+        else {
+            pins.i2cWriteNumber(0x49, ADCRead, NumberFormat.UInt8LE, false)
+            return ADCRead = pins.i2cReadNumber(0x49, NumberFormat.UInt16BE, false)
+        }
     }
 
     //% group="Sensor and ADC"

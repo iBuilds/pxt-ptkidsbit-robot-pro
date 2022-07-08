@@ -11,7 +11,8 @@
     "files": [
         "README.md",
         "main.blocks",
-        "PTKidsBITRobotPRO.ts"
+        "PTKidsBITRobotPRO.ts",
+        "main.ts"
     ],
     "testFiles": [
         "test.ts"
@@ -24,5 +25,5 @@
     "supportedTargets": [
         "microbit"
     ],
-    "preferredEditor": "blocksprj"
+    "preferredEditor": "tsprj"
 }
