@@ -927,27 +927,27 @@ namespace PTKidsBITRobotPRO {
         if (speed1 < 0) {
             pins.digitalWritePin(DigitalPin.P15, 0)
             pins.analogWritePin(AnalogPin.P16, -speed1)
-            pins.analogSetPeriod(AnalogPin.P15, 1000)
-            pins.analogSetPeriod(AnalogPin.P16, 1000)
+            pins.analogSetPeriod(AnalogPin.P15, 2000)
+            pins.analogSetPeriod(AnalogPin.P16, 2000)
         }
         else if (speed1 >= 0) {
             pins.digitalWritePin(DigitalPin.P16, 0)
             pins.analogWritePin(AnalogPin.P15, speed1)
-            pins.analogSetPeriod(AnalogPin.P15, 1000)
-            pins.analogSetPeriod(AnalogPin.P16, 1000)
+            pins.analogSetPeriod(AnalogPin.P15, 2000)
+            pins.analogSetPeriod(AnalogPin.P16, 2000)
         }
         
         if (speed2 < 0) {
             pins.digitalWritePin(DigitalPin.P14, 0)
             pins.analogWritePin(AnalogPin.P13, -speed2)
-            pins.analogSetPeriod(AnalogPin.P13, 1000)
-            pins.analogSetPeriod(AnalogPin.P14, 1000)
+            pins.analogSetPeriod(AnalogPin.P13, 2000)
+            pins.analogSetPeriod(AnalogPin.P14, 2000)
         }
         else if (speed2 >= 0) {
             pins.digitalWritePin(DigitalPin.P13, 0)
             pins.analogWritePin(AnalogPin.P14, speed2)
-            pins.analogSetPeriod(AnalogPin.P13, 1000)
-            pins.analogSetPeriod(AnalogPin.P14, 1000)
+            pins.analogSetPeriod(AnalogPin.P13, 2000)
+            pins.analogSetPeriod(AnalogPin.P14, 2000)
         }
     }
 
