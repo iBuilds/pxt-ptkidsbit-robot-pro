@@ -166,6 +166,13 @@ enum Turn_Sensor {
     ADC4
 }
 
+enum Direction_Robot {
+    //% block="Front"
+    Front,
+    //% block="Back"
+    Back
+}
+
 enum NeoPixelColors {
     //% block=red
     Red = 0xFF0000,
@@ -917,26 +924,26 @@ namespace PTKidsBITRobotPRO {
         speed1 = pins.map(speed1, -100, 100, -1023, 1023)
         speed2 = pins.map(speed2, -100, 100, -1023, 1023)
 
-        if (speed1 < 0) {
+        if (speed2 < 0) {
             pins.digitalWritePin(DigitalPin.P14, 0)
             pins.analogWritePin(AnalogPin.P13, -speed1)
             pins.analogSetPeriod(AnalogPin.P13, 1000)
             pins.analogSetPeriod(AnalogPin.P14, 1000)
         }
-        else if (speed1 >= 0) {
+        else if (speed2 >= 0) {
             pins.digitalWritePin(DigitalPin.P13, 0)
             pins.analogWritePin(AnalogPin.P14, speed1)
             pins.analogSetPeriod(AnalogPin.P13, 1000)
             pins.analogSetPeriod(AnalogPin.P14, 1000)
         }
 
-        if (speed2 < 0) {
+        if (speed1 < 0) {
             pins.digitalWritePin(DigitalPin.P15, 0)
             pins.analogWritePin(AnalogPin.P16, -speed2)
             pins.analogSetPeriod(AnalogPin.P15, 1000)
             pins.analogSetPeriod(AnalogPin.P16, 1000)
         }
-        else if (speed2 >= 0) {
+        else if (speed1 >= 0) {
             pins.digitalWritePin(DigitalPin.P16, 0)
             pins.analogWritePin(AnalogPin.P15, speed2)
             pins.analogSetPeriod(AnalogPin.P15, 1000)
@@ -1198,7 +1205,7 @@ namespace PTKidsBITRobotPRO {
                 _position_max = 500
             }
 
-            _position = GETPosition()
+            _position = GETPosition(Direction_Robot.Front)
             if (_position > _position_min && _position < _position_max) {
                 motorStop()
                 break
@@ -1237,7 +1244,7 @@ namespace PTKidsBITRobotPRO {
         let timer = control.millis()
 
         while (control.millis() - timer < time) {
-            error = GETPosition() - (((Num_Sensor - 1) * 1000) / 2)
+            error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
             P = error
             D = error - previous_error
             PD_Value = (kp * P) + (kd * D)
@@ -1313,7 +1320,7 @@ namespace PTKidsBITRobotPRO {
                 break
             }
 
-            error = GETPosition() - (((Num_Sensor - 1) * 1000) / 2)
+            error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
             P = error
             D = error - previous_error
             PD_Value = (kp * P) + (kd * D)
@@ -1438,7 +1445,7 @@ namespace PTKidsBITRobotPRO {
                 }
             }
 
-            error = GETPosition() - (((Num_Sensor - 1) * 1000) / 2)
+            error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
             P = error
             D = error - previous_error
             PD_Value = (kp * P) + (kd * D)
@@ -1526,7 +1533,7 @@ namespace PTKidsBITRobotPRO {
                 }
             }
 
-            error = GETPosition() - (((Num_Sensor - 1) * 1000) / 2)
+            error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
             P = error
             D = error - previous_error
             PD_Value = (kp * P) + (kd * D)
@@ -1561,7 +1568,7 @@ namespace PTKidsBITRobotPRO {
     //% min_speed.min=0 min_speed.max=100
     //% max_speed.min=0 max_speed.max=100
     export function Follower(min_speed: number, max_speed: number, kp: number, kd: number) {
-        error = GETPosition() - (((Num_Sensor - 1) * 1000) / 2)
+        error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
         serial.writeLine("" + (error))
         P = error
         D = error - previous_error
@@ -1592,8 +1599,8 @@ namespace PTKidsBITRobotPRO {
     /**
      * Get Position Line
      */
-    //% block="GETPosition"
-    export function GETPosition() {
+    //% block="GETPosition %Direction_Robot"
+    export function GETPosition(Direction: Direction_Robot): number {
         let ADC_PIN = [
             ADC_Read.ADC0,
             ADC_Read.ADC1,
@@ -1616,32 +1623,63 @@ namespace PTKidsBITRobotPRO {
         let Sum_Value = 0
         let ON_Line = 0
 
-        for (let i = 0; i < Num_Sensor; i++) {
-            let Value_Sensor = 0;
-            if (Line_Mode == 0) {
-                Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Front[i]]), Color_Line_Front[i], Color_Background_Front[i], 1000, 0)
-                if (Value_Sensor < 0) {
-                    Value_Sensor = 0
+        if (Direction == Direction_Robot.Front) {
+            for (let i = 0; i < Num_Sensor; i++) {
+                let Value_Sensor = 0;
+                if (Line_Mode == 0) {
+                    Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Front[i]]), Color_Line_Front[i], Color_Background_Front[i], 1000, 0)
+                    if (Value_Sensor < 0) {
+                        Value_Sensor = 0
+                    }
+                    else if (Value_Sensor > 1000) {
+                        Value_Sensor = 1000
+                    }
                 }
-                else if (Value_Sensor > 1000) {
-                    Value_Sensor = 1000
+                else {
+                    Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Front[i]]), Color_Background_Front[i], Color_Line_Front[i], 1000, 0)
+                    if (Value_Sensor < 0) {
+                        Value_Sensor = 0
+                    }
+                    else if (Value_Sensor > 1000) {
+                        Value_Sensor = 1000
+                    }
                 }
+                if (Value_Sensor > 200) {
+                    ON_Line = 1;
+                }
+                Average += Value_Sensor * (i * 1000)
+                Sum_Value += Value_Sensor
             }
-            else {
-                Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Front[i]]), Color_Background_Front[i], Color_Line_Front[i], 1000, 0)
-                if (Value_Sensor < 0) {
-                    Value_Sensor = 0
-                }
-                else if (Value_Sensor > 1000) {
-                    Value_Sensor = 1000
-                }
-            }
-            if (Value_Sensor > 200) {
-                ON_Line = 1;
-            }
-            Average += Value_Sensor * (i * 1000)
-            Sum_Value += Value_Sensor
         }
+        else {
+            for (let i = 0; i < Num_Sensor; i++) {
+                let Value_Sensor = 0;
+                if (Line_Mode == 0) {
+                    Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Back[i]]), Color_Line_Back[i], Color_Background_Back[i], 1000, 0)
+                    if (Value_Sensor < 0) {
+                        Value_Sensor = 0
+                    }
+                    else if (Value_Sensor > 1000) {
+                        Value_Sensor = 1000
+                    }
+                }
+                else {
+                    Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Back[i]]), Color_Background_Back[i], Color_Line_Back[i], 1000, 0)
+                    if (Value_Sensor < 0) {
+                        Value_Sensor = 0
+                    }
+                    else if (Value_Sensor > 1000) {
+                        Value_Sensor = 1000
+                    }
+                }
+                if (Value_Sensor > 200) {
+                    ON_Line = 1;
+                }
+                Average += Value_Sensor * (i * 1000)
+                Sum_Value += Value_Sensor
+            }
+        }
+
         if (ON_Line == 0) {
             if (Last_Position < (Num_Sensor - 1) * 1000 / 2) {
                 return (Num_Sensor - 1) * 1000
@@ -1716,7 +1754,7 @@ namespace PTKidsBITRobotPRO {
                 if (_Sensor_PIN_Front[i] == j) {
                     Line_HIGH_Front[j] = Line_Cal_Front[i]
                 }
-                if (_Sensor_PIN_Back[i] == j) {
+                if ((_Sensor_PIN_Back[i] - 7) == j) {
                     Line_HIGH_Back[j] = Line_Cal_Back[i]
                 }
             }
@@ -1749,7 +1787,7 @@ namespace PTKidsBITRobotPRO {
                 if (_Sensor_PIN_Front[i] == j) {
                     Line_LOW_Front[j] = Background_Cal_Front[i]
                 }
-                if (_Sensor_PIN_Back[i] == j) {
+                if ((_Sensor_PIN_Back[i] - 7) == j) {
                     Line_LOW_Back[j] = Background_Cal_Back[i]
                 }
             }
@@ -1757,7 +1795,7 @@ namespace PTKidsBITRobotPRO {
 
         for (let i = 0; i < Num_Sensor; i++) {
             Color_Line_Front[i] = Line_HIGH_Front[Sensor_PIN_Front[i]]
-            Color_Line_Back[i] = Line_HIGH_Back[Sensor_PIN_Back[i]]
+            Color_Line_Back[i] = Line_HIGH_Back[Sensor_PIN_Back[i] - 7]
             Color_Background_Front[i] = Line_LOW_Front[Sensor_PIN_Front[i]]
             Color_Background_Back[i] = Line_LOW_Back[Sensor_PIN_Back[i]]
         }
@@ -1766,16 +1804,16 @@ namespace PTKidsBITRobotPRO {
             Color_Background_Left_Front[i] = Line_LOW_Front[Sensor_Left_Front[i]]
         }
         for (let i = 0; i < Sensor_Left_Back.length; i++) {
-            Color_Line_Left_Back[i] = Line_HIGH_Back[Sensor_Left_Back[i]]
-            Color_Background_Left_Back[i] = Line_LOW_Back[Sensor_Left_Back[i]]
+            Color_Line_Left_Back[i] = Line_HIGH_Back[Sensor_Left_Back[i] - 7]
+            Color_Background_Left_Back[i] = Line_LOW_Back[Sensor_Left_Back[i] - 7]
         }
         for (let i = 0; i < Sensor_Right_Front.length; i++) {
             Color_Line_Right_Front[i] = Line_HIGH_Front[Sensor_Right_Front[i]]
             Color_Background_Right_Front[i] = Line_LOW_Front[Sensor_Right_Front[i]]
         }
         for (let i = 0; i < Sensor_Right_Back.length; i++) {
-            Color_Line_Right_Back[i] = Line_HIGH_Back[Sensor_Right_Back[i]]
-            Color_Background_Right_Back[i] = Line_LOW_Back[Sensor_Right_Back[i]]
+            Color_Line_Right_Back[i] = Line_HIGH_Back[Sensor_Right_Back[i] - 7]
+            Color_Background_Right_Back[i] = Line_LOW_Back[Sensor_Right_Back[i] - 7]
         }
 
         Color_Line_All_Front = [Color_Line_Left_Front[0], Color_Line_Front[0], Color_Line_Front[1], Color_Line_Front[2], Color_Line_Front[3], Color_Line_Front[4], Color_Line_Right_Front[0]]
