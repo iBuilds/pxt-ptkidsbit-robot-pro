@@ -1244,14 +1244,14 @@ namespace PTKidsBITRobotPRO {
         let timer = control.millis()
 
         while (control.millis() - timer < time) {
-            error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
+            error = GETPosition(Direction_Robot.Back) - (((Num_Sensor - 1) * 1000) / 2)
             P = error
             D = error - previous_error
             PD_Value = (kp * P) + (kd * D)
             previous_error = error
 
-            left_motor_speed = min_speed - PD_Value
-            right_motor_speed = min_speed + PD_Value
+            left_motor_speed = min_speed + PD_Value
+            right_motor_speed = min_speed - PD_Value
 
             if (left_motor_speed > max_speed) {
                 left_motor_speed = max_speed
@@ -1267,7 +1267,7 @@ namespace PTKidsBITRobotPRO {
                 right_motor_speed = -max_speed
             }
 
-            motorGo(left_motor_speed, right_motor_speed)
+            motorGo(-left_motor_speed, -right_motor_speed)
         }
         motorStop()
     }
@@ -1754,11 +1754,12 @@ namespace PTKidsBITRobotPRO {
                 if (_Sensor_PIN_Front[i] == j) {
                     Line_HIGH_Front[j] = Line_Cal_Front[i]
                 }
-                if ((_Sensor_PIN_Back[i] - 7) == j) {
+                if ((_Sensor_PIN_Back[i] - 8) == j) {
                     Line_HIGH_Back[j] = Line_Cal_Back[i]
                 }
             }
         }
+
         pins.digitalWritePin(DigitalPin.P8, 0)
         pins.digitalWritePin(DigitalPin.P12, 0)
         basic.pause(100)
@@ -1787,7 +1788,7 @@ namespace PTKidsBITRobotPRO {
                 if (_Sensor_PIN_Front[i] == j) {
                     Line_LOW_Front[j] = Background_Cal_Front[i]
                 }
-                if ((_Sensor_PIN_Back[i] - 7) == j) {
+                if ((_Sensor_PIN_Back[i] - 8) == j) {
                     Line_LOW_Back[j] = Background_Cal_Back[i]
                 }
             }
@@ -1795,25 +1796,25 @@ namespace PTKidsBITRobotPRO {
 
         for (let i = 0; i < Num_Sensor; i++) {
             Color_Line_Front[i] = Line_HIGH_Front[Sensor_PIN_Front[i]]
-            Color_Line_Back[i] = Line_HIGH_Back[Sensor_PIN_Back[i] - 7]
+            Color_Line_Back[i] = Line_HIGH_Back[Sensor_PIN_Back[i] - 8]
             Color_Background_Front[i] = Line_LOW_Front[Sensor_PIN_Front[i]]
-            Color_Background_Back[i] = Line_LOW_Back[Sensor_PIN_Back[i]]
+            Color_Background_Back[i] = Line_LOW_Back[Sensor_PIN_Back[i] - 8]
         }
         for (let i = 0; i < Sensor_Left_Front.length; i++) {
             Color_Line_Left_Front[i] = Line_HIGH_Front[Sensor_Left_Front[i]]
             Color_Background_Left_Front[i] = Line_LOW_Front[Sensor_Left_Front[i]]
         }
         for (let i = 0; i < Sensor_Left_Back.length; i++) {
-            Color_Line_Left_Back[i] = Line_HIGH_Back[Sensor_Left_Back[i] - 7]
-            Color_Background_Left_Back[i] = Line_LOW_Back[Sensor_Left_Back[i] - 7]
+            Color_Line_Left_Back[i] = Line_HIGH_Back[Sensor_Left_Back[i] - 8]
+            Color_Background_Left_Back[i] = Line_LOW_Back[Sensor_Left_Back[i] - 8]
         }
         for (let i = 0; i < Sensor_Right_Front.length; i++) {
             Color_Line_Right_Front[i] = Line_HIGH_Front[Sensor_Right_Front[i]]
             Color_Background_Right_Front[i] = Line_LOW_Front[Sensor_Right_Front[i]]
         }
         for (let i = 0; i < Sensor_Right_Back.length; i++) {
-            Color_Line_Right_Back[i] = Line_HIGH_Back[Sensor_Right_Back[i] - 7]
-            Color_Background_Right_Back[i] = Line_LOW_Back[Sensor_Right_Back[i] - 7]
+            Color_Line_Right_Back[i] = Line_HIGH_Back[Sensor_Right_Back[i] - 8]
+            Color_Background_Right_Back[i] = Line_LOW_Back[Sensor_Right_Back[i] - 8]
         }
 
         Color_Line_All_Front = [Color_Line_Left_Front[0], Color_Line_Front[0], Color_Line_Front[1], Color_Line_Front[2], Color_Line_Front[3], Color_Line_Front[4], Color_Line_Right_Front[0]]
