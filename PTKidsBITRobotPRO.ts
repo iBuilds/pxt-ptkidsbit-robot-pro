@@ -137,12 +137,12 @@ enum Forward_Direction {
     Backward
 }
 
-enum Find_Line {
-    //% block="Left"
+enum Intersection {
+    //% block="\u2513"
     Left,
-    //% block="Center"
+    //% block="\u2533"
     Center,
-    //% block="Right"
+    //% block="\u250F"
     Right
 }
 
@@ -970,7 +970,7 @@ namespace PTKidsBITRobotPRO {
     /**
      * Set LED Color RGB
      */
-    //% block="SETColor Red %red|Green %green|Blue %blue|Brightness %brightness"
+    //% block="SETColor Red %red|Green %green|Blue\n %blue|Brightness %brightness"
     export function setColorRGB(red: number, green: number, blue: number, brightness: number): void {
         if (Read_Version == false) {
             let i2cData = pins.createBuffer(2)
@@ -1351,15 +1351,15 @@ namespace PTKidsBITRobotPRO {
     /**
      * Line Follower Forward find Line
      */
-    //% block="Find %Find_Line|Count %count|Min Speed %base_speed|Max Speed %max_speed|KP %kp|KD %kd"
-    //% find.defl=Find_Line.Center
+    //% block="Crossroads %Intersection|Direction\n %Forward_Direction|Count Line %count|Min Speed\n %base_speed|Max Speed\n %max_speed|KP %kp|KD %kd"
+    //% find.defl=Intersection.Center
     //% count.defl=1
     //% min_speed.defl=30
     //% max_speed.defl=100
     //% kp.defl=0.01
     //% min_speed.min=0 min_speed.max=100
     //% max_speed.min=0 max_speed.max=100
-    export function ForwardLINECount(find: Find_Line, count: number, min_speed: number, max_speed: number, kp: number, kd: number) {
+    export function ForwardLINECount(find: Intersection, Direction: Forward_Direction, count: number, min_speed: number, max_speed: number, kp: number, kd: number) {
         let on_line_setpoint = 500
         let _count = 0
         while (1) {
@@ -1372,7 +1372,7 @@ namespace PTKidsBITRobotPRO {
                 }
             }
 
-            if (find == Find_Line.Center) {
+            if (find == Intersection.Center) {
                 if (found >= 5) {
                     _count += 1
                     if (_count >= count) {
@@ -1400,7 +1400,7 @@ namespace PTKidsBITRobotPRO {
                     }
                 }
             }
-            else if (find == Find_Line.Left) {
+            else if (find == Intersection.Left) {
                 if (Line_All_Front[0] > on_line_setpoint && Line_All_Front[1] > on_line_setpoint && Line_All_Front[2] > on_line_setpoint && Line_All_Front[5] < 500) {
                     _count += 1
                     if (_count >= count) {
@@ -1422,7 +1422,7 @@ namespace PTKidsBITRobotPRO {
                     }
                 }
             }
-            else if (find == Find_Line.Right) {
+            else if (find == Intersection.Right) {
                 if (Line_All_Front[3] > on_line_setpoint && Line_All_Front[4] > on_line_setpoint && Line_All_Front[5] > on_line_setpoint && Line_All_Front[0] < 500) {
                     _count += 1
                     if (_count >= count) {
@@ -1476,14 +1476,14 @@ namespace PTKidsBITRobotPRO {
     /**
      * Line Follower Forward find Line
      */
-    //% block="Find %Find_Line|Min Speed %base_speed|Max Speed %max_speed|KP %kp|KD %kd"
-    //% find.defl=Find_Line.Center
+    //% block="Crossroads %Find_Line|Direction\n %Forward_Direction|Min Speed\n %base_speed|Max Speed\n %max_speed|KP %kp|KD %kd"
+    //% find.defl=Intersection.Center
     //% min_speed.defl=30
     //% max_speed.defl=100
     //% kp.defl=0.01
     //% min_speed.min=0 min_speed.max=100
     //% max_speed.min=0 max_speed.max=100
-    export function ForwardLINE(find: Find_Line, min_speed: number, max_speed: number, kp: number, kd: number) {
+    export function ForwardLINE(find: Intersection, Direction: Forward_Direction, min_speed: number, max_speed: number, kp: number, kd: number) {
         let on_line_setpoint = 500
 
         while (1) {
@@ -1514,19 +1514,19 @@ namespace PTKidsBITRobotPRO {
                 }
             }
 
-            if (find == Find_Line.Center) {
+            if (find == Intersection.Center) {
                 if (found >= 5) {
                     motorStop()
                     break
                 }
             }
-            else if (find == Find_Line.Left) {
+            else if (find == Intersection.Left) {
                 if (Line_All_Front[0] > on_line_setpoint && Line_All_Front[1] > on_line_setpoint && Line_All_Front[2] > on_line_setpoint && Line_All_Front[5] < 500) {
                     motorStop()
                     break
                 }
             }
-            else if (find == Find_Line.Right) {
+            else if (find == Intersection.Right) {
                 if (Line_All_Front[3] > on_line_setpoint && Line_All_Front[4] > on_line_setpoint && Line_All_Front[5] > on_line_setpoint && Line_All_Front[0] < 500) {
                     motorStop()
                     break
@@ -1564,35 +1564,64 @@ namespace PTKidsBITRobotPRO {
     /**
      * Basic Line Follower
      */
-    //% block="Min Speed %base_speed|Max Speed %max_speed|KP %kp|KD %kd"
+    //% block="Direction %Forward_Direction|Min Speed %base_speed|Max Speed %max_speed|KP %kp|KD %kd"
     //% min_speed.min=0 min_speed.max=100
     //% max_speed.min=0 max_speed.max=100
-    export function Follower(min_speed: number, max_speed: number, kp: number, kd: number) {
-        error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
-        serial.writeLine("" + (error))
-        P = error
-        D = error - previous_error
-        PD_Value = (kp * P) + (kd * D)
-        previous_error = error
+    export function Follower(Direction: Forward_Direction, min_speed: number, max_speed: number, kp: number, kd: number) {
+        if (Direction == Forward_Direction.Forward) {
+            error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
+            serial.writeLine("" + (error))
+            P = error
+            D = error - previous_error
+            PD_Value = (kp * P) + (kd * D)
+            previous_error = error
 
-        left_motor_speed = min_speed - PD_Value
-        right_motor_speed = min_speed + PD_Value
+            left_motor_speed = min_speed - PD_Value
+            right_motor_speed = min_speed + PD_Value
 
-        if (left_motor_speed > max_speed) {
-            left_motor_speed = max_speed
-        }
-        else if (left_motor_speed < -max_speed) {
-            left_motor_speed = -max_speed
-        }
+            if (left_motor_speed > max_speed) {
+                left_motor_speed = max_speed
+            }
+            else if (left_motor_speed < -max_speed) {
+                left_motor_speed = -max_speed
+            }
 
-        if (right_motor_speed > max_speed) {
-            right_motor_speed = max_speed
-        }
-        else if (right_motor_speed < -max_speed) {
-            right_motor_speed = -max_speed
-        }
+            if (right_motor_speed > max_speed) {
+                right_motor_speed = max_speed
+            }
+            else if (right_motor_speed < -max_speed) {
+                right_motor_speed = -max_speed
+            }
 
-        motorGo(left_motor_speed, right_motor_speed)
+            motorGo(left_motor_speed, right_motor_speed)
+        }
+        else {
+            error = GETPosition(Direction_Robot.Back) - (((Num_Sensor - 1) * 1000) / 2)
+            serial.writeLine("" + (error))
+            P = error
+            D = error - previous_error
+            PD_Value = (kp * P) + (kd * D)
+            previous_error = error
+
+            left_motor_speed = min_speed + PD_Value
+            right_motor_speed = min_speed - PD_Value
+
+            if (left_motor_speed > max_speed) {
+                left_motor_speed = max_speed
+            }
+            else if (left_motor_speed < -max_speed) {
+                left_motor_speed = -max_speed
+            }
+
+            if (right_motor_speed > max_speed) {
+                right_motor_speed = max_speed
+            }
+            else if (right_motor_speed < -max_speed) {
+                right_motor_speed = -max_speed
+            }
+
+            motorGo(-left_motor_speed, -right_motor_speed)
+        }
     }
 
     //% group="Line Follower"
