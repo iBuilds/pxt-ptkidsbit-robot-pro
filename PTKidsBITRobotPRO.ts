@@ -1562,13 +1562,14 @@ namespace PTKidsBITRobotPRO {
     //% max_speed.min=0 max_speed.max=100
     export function Follower(min_speed: number, max_speed: number, kp: number, kd: number) {
         error = GETPosition() - (((Num_Sensor - 1) * 1000) / 2)
+        serial.writeLine("" + (error))
         P = error
         D = error - previous_error
         PD_Value = (kp * P) + (kd * D)
         previous_error = error
 
-        left_motor_speed = min_speed - PD_Value
-        right_motor_speed = min_speed + PD_Value
+        left_motor_speed = min_speed + PD_Value
+        right_motor_speed = min_speed - PD_Value
 
         if (left_motor_speed > max_speed) {
             left_motor_speed = max_speed
