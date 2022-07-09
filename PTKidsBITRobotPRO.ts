@@ -924,30 +924,30 @@ namespace PTKidsBITRobotPRO {
         speed1 = pins.map(speed1, -100, 100, -1023, 1023)
         speed2 = pins.map(speed2, -100, 100, -1023, 1023)
 
-        if (speed2 < 0) {
-            pins.digitalWritePin(DigitalPin.P14, 0)
-            pins.analogWritePin(AnalogPin.P13, -speed1)
-            pins.analogSetPeriod(AnalogPin.P13, 1000)
-            pins.analogSetPeriod(AnalogPin.P14, 1000)
-        }
-        else if (speed2 >= 0) {
-            pins.digitalWritePin(DigitalPin.P13, 0)
-            pins.analogWritePin(AnalogPin.P14, speed1)
-            pins.analogSetPeriod(AnalogPin.P13, 1000)
-            pins.analogSetPeriod(AnalogPin.P14, 1000)
-        }
-
         if (speed1 < 0) {
             pins.digitalWritePin(DigitalPin.P15, 0)
-            pins.analogWritePin(AnalogPin.P16, -speed2)
+            pins.analogWritePin(AnalogPin.P16, -speed1)
             pins.analogSetPeriod(AnalogPin.P15, 1000)
             pins.analogSetPeriod(AnalogPin.P16, 1000)
         }
         else if (speed1 >= 0) {
             pins.digitalWritePin(DigitalPin.P16, 0)
-            pins.analogWritePin(AnalogPin.P15, speed2)
+            pins.analogWritePin(AnalogPin.P15, speed1)
             pins.analogSetPeriod(AnalogPin.P15, 1000)
             pins.analogSetPeriod(AnalogPin.P16, 1000)
+        }
+        
+        if (speed2 < 0) {
+            pins.digitalWritePin(DigitalPin.P14, 0)
+            pins.analogWritePin(AnalogPin.P13, -speed2)
+            pins.analogSetPeriod(AnalogPin.P13, 1000)
+            pins.analogSetPeriod(AnalogPin.P14, 1000)
+        }
+        else if (speed2 >= 0) {
+            pins.digitalWritePin(DigitalPin.P13, 0)
+            pins.analogWritePin(AnalogPin.P14, speed2)
+            pins.analogSetPeriod(AnalogPin.P13, 1000)
+            pins.analogSetPeriod(AnalogPin.P14, 1000)
         }
     }
 
@@ -1575,8 +1575,8 @@ namespace PTKidsBITRobotPRO {
         PD_Value = (kp * P) + (kd * D)
         previous_error = error
 
-        left_motor_speed = min_speed + PD_Value
-        right_motor_speed = min_speed - PD_Value
+        left_motor_speed = min_speed - PD_Value
+        right_motor_speed = min_speed + PD_Value
 
         if (left_motor_speed > max_speed) {
             left_motor_speed = max_speed
