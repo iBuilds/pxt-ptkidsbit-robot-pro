@@ -13,6 +13,9 @@ let Sensor_PIN_Back = [13, 12, 11, 10, 9]
 let Sensor_Left_Back = [14]
 let Sensor_Right_Back = [8]
 let Num_Sensor = 5
+let KP = 0.01
+let KD = 0
+let Max_Speed = 100
 
 let Version = 1
 let Read_Version = false
@@ -138,11 +141,11 @@ enum Forward_Direction {
 }
 
 enum Intersection {
-    //% block="\u2513"
+    //% block="|\n\u2513\n|"
     Left,
-    //% block="\u2533"
+    //% block="|\n\u2533\n|"
     Center,
-    //% block="\u250F"
+    //% block="|\n\u250F\n|"
     Right
 }
 
@@ -169,6 +172,15 @@ enum Turn_Sensor {
 enum Direction_Robot {
     //% block="Front"
     Front,
+    //% block="Back"
+    Back
+}
+
+enum Stop_Position {
+    //% block="Front"
+    Front,
+    //% block="Center"
+    Center,
     //% block="Back"
     Back
 }
@@ -205,7 +217,7 @@ enum NeoPixelMode {
     RGB_RGB = 3
 }
 
-//% color="#2ECC71" icon="\u2B99"
+//% color="#48C9B0" icon="\u2B99"
 namespace PTKidsBITRobotPRO {
     class Strip {
         buf: Buffer;
@@ -966,7 +978,7 @@ namespace PTKidsBITRobotPRO {
         }
     }
 
-    //% group="LED Control (V2 Only)"
+    //% group="RGB LED Control"
     /**
      * Set LED Color RGB
      */
@@ -991,7 +1003,7 @@ namespace PTKidsBITRobotPRO {
         }
     }
 
-    //% group="LED Control (V2 Only)"
+    //% group="RGB LED Control"
     /**
      * Set LED Color
      */
@@ -1351,15 +1363,13 @@ namespace PTKidsBITRobotPRO {
     /**
      * Line Follower Forward find Line
      */
-    //% block="Crossroads %Intersection|Direction\n %Forward_Direction|Count Line %count|Min Speed\n %base_speed|Max Speed\n %max_speed|KP %kp|KD %kd"
+    //% block="Junction\n\n %Intersection|Direction\n %Forward_Direction|Count Line %count|Base Speed %base_speed|Stop Point %Stop_Position"
     //% find.defl=Intersection.Center
     //% count.defl=1
     //% min_speed.defl=30
-    //% max_speed.defl=100
-    //% kp.defl=0.01
     //% min_speed.min=0 min_speed.max=100
-    //% max_speed.min=0 max_speed.max=100
-    export function ForwardLINECount(find: Intersection, Direction: Forward_Direction, count: number, min_speed: number, max_speed: number, kp: number, kd: number) {
+    //% stop_position.defl=Stop_Position.Center
+    export function ForwardLINECount(find: Intersection, Direction: Forward_Direction, count: number, min_speed: number, stop_position: Stop_Position) {
         let on_line_setpoint = 500
         let _count = 0
         while (1) {
@@ -1448,24 +1458,24 @@ namespace PTKidsBITRobotPRO {
             error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
             P = error
             D = error - previous_error
-            PD_Value = (kp * P) + (kd * D)
+            PD_Value = (KP * P) + (KD * D)
             previous_error = error
 
             left_motor_speed = min_speed - PD_Value
             right_motor_speed = min_speed + PD_Value
 
-            if (left_motor_speed > max_speed) {
-                left_motor_speed = max_speed
+            if (left_motor_speed > Max_Speed) {
+                left_motor_speed = Max_Speed
             }
-            else if (left_motor_speed < -max_speed) {
-                left_motor_speed = -max_speed
+            else if (left_motor_speed < -Max_Speed) {
+                left_motor_speed = -Max_Speed
             }
 
-            if (right_motor_speed > max_speed) {
-                right_motor_speed = max_speed
+            if (right_motor_speed > Max_Speed) {
+                right_motor_speed = Max_Speed
             }
-            else if (right_motor_speed < -max_speed) {
-                right_motor_speed = -max_speed
+            else if (right_motor_speed < -Max_Speed) {
+                right_motor_speed = -Max_Speed
             }
 
             motorGo(left_motor_speed, right_motor_speed)
@@ -1476,14 +1486,12 @@ namespace PTKidsBITRobotPRO {
     /**
      * Line Follower Forward find Line
      */
-    //% block="Crossroads %Find_Line|Direction\n %Forward_Direction|Min Speed\n %base_speed|Max Speed\n %max_speed|KP %kp|KD %kd"
+    //% block="Junction\n\n %Find_Line|Direction\n %Forward_Direction|Base Speed %base_speed|Stop Point %Stop_Position"
     //% find.defl=Intersection.Center
     //% min_speed.defl=30
-    //% max_speed.defl=100
-    //% kp.defl=0.01
     //% min_speed.min=0 min_speed.max=100
-    //% max_speed.min=0 max_speed.max=100
-    export function ForwardLINE(find: Intersection, Direction: Forward_Direction, min_speed: number, max_speed: number, kp: number, kd: number) {
+    //% stop_position.defl=Stop_Position.Center
+    export function ForwardLINE(find: Intersection, Direction: Forward_Direction, min_speed: number, stop_position: Stop_Position) {
         let on_line_setpoint = 500
 
         while (1) {
@@ -1536,24 +1544,24 @@ namespace PTKidsBITRobotPRO {
             error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
             P = error
             D = error - previous_error
-            PD_Value = (kp * P) + (kd * D)
+            PD_Value = (KP * P) + (KD * D)
             previous_error = error
 
             left_motor_speed = min_speed - PD_Value
             right_motor_speed = min_speed + PD_Value
 
-            if (left_motor_speed > max_speed) {
-                left_motor_speed = max_speed
+            if (left_motor_speed > Max_Speed) {
+                left_motor_speed = Max_Speed
             }
-            else if (left_motor_speed < -max_speed) {
-                left_motor_speed = -max_speed
+            else if (left_motor_speed < -Max_Speed) {
+                left_motor_speed = -Max_Speed
             }
 
-            if (right_motor_speed > max_speed) {
-                right_motor_speed = max_speed
+            if (right_motor_speed > Max_Speed) {
+                right_motor_speed = Max_Speed
             }
-            else if (right_motor_speed < -max_speed) {
-                right_motor_speed = -max_speed
+            else if (right_motor_speed < -Max_Speed) {
+                right_motor_speed = -Max_Speed
             }
 
             motorGo(left_motor_speed, right_motor_speed)
@@ -1564,33 +1572,33 @@ namespace PTKidsBITRobotPRO {
     /**
      * Basic Line Follower
      */
-    //% block="Direction %Forward_Direction|Min Speed %base_speed|Max Speed %max_speed|KP %kp|KD %kd"
+    //% block="Direction %Forward_Direction|Speed %base_speed"
+    //% min_speed.defl=30
     //% min_speed.min=0 min_speed.max=100
-    //% max_speed.min=0 max_speed.max=100
-    export function Follower(Direction: Forward_Direction, min_speed: number, max_speed: number, kp: number, kd: number) {
+    export function Follower(Direction: Forward_Direction, min_speed: number) {
         if (Direction == Forward_Direction.Forward) {
             error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
             serial.writeLine("" + (error))
             P = error
             D = error - previous_error
-            PD_Value = (kp * P) + (kd * D)
+            PD_Value = (KP * P) + (KD * D)
             previous_error = error
 
             left_motor_speed = min_speed - PD_Value
             right_motor_speed = min_speed + PD_Value
 
-            if (left_motor_speed > max_speed) {
-                left_motor_speed = max_speed
+            if (left_motor_speed > Max_Speed) {
+                left_motor_speed = Max_Speed
             }
-            else if (left_motor_speed < -max_speed) {
-                left_motor_speed = -max_speed
+            else if (left_motor_speed < -Max_Speed) {
+                left_motor_speed = -Max_Speed
             }
 
-            if (right_motor_speed > max_speed) {
-                right_motor_speed = max_speed
+            if (right_motor_speed > Max_Speed) {
+                right_motor_speed = Max_Speed
             }
-            else if (right_motor_speed < -max_speed) {
-                right_motor_speed = -max_speed
+            else if (right_motor_speed < -Max_Speed) {
+                right_motor_speed = -Max_Speed
             }
 
             motorGo(left_motor_speed, right_motor_speed)
@@ -1600,24 +1608,24 @@ namespace PTKidsBITRobotPRO {
             serial.writeLine("" + (error))
             P = error
             D = error - previous_error
-            PD_Value = (kp * P) + (kd * D)
+            PD_Value = (KP * P) + (KD * D)
             previous_error = error
 
             left_motor_speed = min_speed + PD_Value
             right_motor_speed = min_speed - PD_Value
 
-            if (left_motor_speed > max_speed) {
-                left_motor_speed = max_speed
+            if (left_motor_speed > Max_Speed) {
+                left_motor_speed = Max_Speed
             }
-            else if (left_motor_speed < -max_speed) {
-                left_motor_speed = -max_speed
+            else if (left_motor_speed < -Max_Speed) {
+                left_motor_speed = -Max_Speed
             }
 
-            if (right_motor_speed > max_speed) {
-                right_motor_speed = max_speed
+            if (right_motor_speed > Max_Speed) {
+                right_motor_speed = Max_Speed
             }
-            else if (right_motor_speed < -max_speed) {
-                right_motor_speed = -max_speed
+            else if (right_motor_speed < -Max_Speed) {
+                right_motor_speed = -Max_Speed
             }
 
             motorGo(-left_motor_speed, -right_motor_speed)
