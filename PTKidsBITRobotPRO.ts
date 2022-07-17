@@ -1463,7 +1463,7 @@ namespace PTKidsBITRobotPRO {
             ADC_Read.ADC15
         ]
         let break_direction = 0
-        let on_line_setpoint = 500
+        let on_line_setpoint = 900
         let _count = 0
         let _last_count = 0
 
@@ -1491,11 +1491,11 @@ namespace PTKidsBITRobotPRO {
             }
 
             if (find == Intersection.Center) {
-                if (found >= 5) {
+                if (found >= 7) {
                     _count += 1
                     if (_count >= count) {
                         motorGo(min_speed * break_direction, min_speed * break_direction)
-                        basic.pause(20)
+                        basic.pause(30)
                         while (1) {
                             let _sensor_left = pins.map(ADCRead(ADC_PIN[Sensor_Center_Left]), Color_Line_Center_Left[0], Color_Background_Center_Left[0], 1000, 0)
                             let _sensor_right = pins.map(ADCRead(ADC_PIN[Sensor_Center_Right]), Color_Line_Center_Right[0], Color_Background_Center_Right[0], 1000, 0)
@@ -1506,7 +1506,7 @@ namespace PTKidsBITRobotPRO {
                                 break
                             }
                             else {
-                                Follower(Direction, 10)
+                                motorGo(10, 10)
                             }
                         }
                         break
@@ -1541,24 +1541,24 @@ namespace PTKidsBITRobotPRO {
             else {
                 if (Direction == Forward_Direction.Forward) {
                     if (find == Intersection.Left) {
-                        if (Line_All_Front[0] > on_line_setpoint && Line_All_Front[1] > on_line_setpoint && Line_All_Front[2] > on_line_setpoint && Line_All_Front[6] < 500) {
+                        if (Line_All_Front[0] > on_line_setpoint && Line_All_Front[6] < 1000 - on_line_setpoint) {
                             _count += 1
                         }
                     }
                     else {
-                        if (Line_All_Front[6] > on_line_setpoint && Line_All_Front[5] > on_line_setpoint && Line_All_Front[4] > on_line_setpoint && Line_All_Front[0] < 500) {
+                        if (Line_All_Front[6] > on_line_setpoint && Line_All_Front[0] < 1000 - on_line_setpoint) {
                             _count += 1
                         }
                     }
                 }
                 else {
                     if (find == Intersection.Left) {
-                        if (Line_All_Back[0] > on_line_setpoint && Line_All_Back[1] > on_line_setpoint && Line_All_Back[2] > on_line_setpoint && Line_All_Back[6] < 500) {
+                        if (Line_All_Front[0] > on_line_setpoint && Line_All_Front[6] < 1000 - on_line_setpoint) {
                             _count += 1
                         }
                     }
                     else {
-                        if (Line_All_Back[6] > on_line_setpoint && Line_All_Back[5] > on_line_setpoint && Line_All_Back[4] > on_line_setpoint && Line_All_Back[0] < 500) {
+                        if (Line_All_Front[6] > on_line_setpoint && Line_All_Front[0] < 1000 - on_line_setpoint) {
                             _count += 1
                         }
                     }
@@ -1609,194 +1609,7 @@ namespace PTKidsBITRobotPRO {
                     }
                     break
                 }
-
-
-
-
-                // else {
-                //     while (1) {
-                //         let found = 0
-                //         readAdcAll(Direction)
-                //         for (let i = 0; i < 7; i++) {
-                //             if (Direction == Forward_Direction.Forward) {
-                //                 if (Line_All_Front[i] > on_line_setpoint) {
-                //                     found += 1
-                //                 }
-                //             }
-                //             else {
-                //                 if (Line_All_Back[i] > on_line_setpoint) {
-                //                     found += 1
-                //                 }
-                //             }
-                //         }
-                //         if (found >= 4) {
-                //             motorGo(min_speed, min_speed)
-                //         }
-                //         else {
-                //             break
-                //         }
-                //     }
-                // }
             }
-
-
-
-            // else if (find == Intersection.Right) {
-            //     if (Direction == Forward_Direction.Forward) {
-            //         if (Line_All_Front[0] > on_line_setpoint && Line_All_Front[1] > on_line_setpoint && Line_All_Front[2] > on_line_setpoint && Line_All_Front[5] < 500) {
-            //             _count += 1
-            //         }
-            //     }
-            //     else {
-            //         if (Line_All_Back[0] > on_line_setpoint && Line_All_Back[1] > on_line_setpoint && Line_All_Back[2] > on_line_setpoint && Line_All_Back[5] < 500) {
-            //             _count += 1
-            //         }
-            //     }
-
-            //     if (_count >= count) {
-            //         motorGo(-min_speed, -min_speed)
-            //         basic.pause(20)
-            //         while (1) {
-            //             let _sensor_left = pins.map(ADCRead(ADC_PIN[Sensor_Center_Left]), Color_Line_Center_Left[0], Color_Background_Center_Left[0], 1000, 0)
-            //             let _sensor_right = pins.map(ADCRead(ADC_PIN[Sensor_Center_Right]), Color_Line_Center_Right[0], Color_Background_Center_Right[0], 1000, 0)
-            //             if (_sensor_left >= 500 || _sensor_right >= 500) {
-            //                 motorGo(-10, -10)
-            //                 basic.pause(50)
-            //                 motorStop()
-            //                 break
-            //             }
-            //             else {
-            //                 Follower(Forward_Direction.Forward, 10)
-            //             }
-            //         }
-            //         break
-            //     }
-            //     else {
-            //         while (1) {
-            //             let found = 0
-            //             readAdcAll(Forward_Direction.Forward)
-            //             if (Line_All_Front[3] > on_line_setpoint && Line_All_Front[4] > on_line_setpoint && Line_All_Front[5] > on_line_setpoint && Line_All_Front[0] < 500) {
-            //                 motorGo(min_speed, min_speed)
-            //             }
-            //             else {
-            //                 break
-            //             }
-            //         }
-            //     }
-            // }
-            // else {
-            //     if (find == Intersection.Center) {
-            //         if (found >= 5) {
-            //             _count += 1
-            //             if (_count >= count) {
-            //                 motorGo(min_speed, min_speed)
-            //                 basic.pause(20)
-            //                 while (1) {
-            //                     let _sensor_left = pins.map(ADCRead(ADC_PIN[Sensor_Center_Left]), Color_Line_Center_Left[0], Color_Background_Center_Left[0], 1000, 0)
-            //                     let _sensor_right = pins.map(ADCRead(ADC_PIN[Sensor_Center_Right]), Color_Line_Center_Right[0], Color_Background_Center_Right[0], 1000, 0)
-            //                     if (_sensor_left >= 500 || _sensor_right >= 500) {
-            //                         motorGo(10, 10)
-            //                         basic.pause(50)
-            //                         motorStop()
-            //                         break
-            //                     }
-            //                     else {
-            //                         Follower(Forward_Direction.Backward, 10)
-            //                     }
-            //                 }
-            //                 break
-            //             }
-            //             else {
-            //                 while (1) {
-            //                     let found = 0
-            //                     readAdcAll(Direction_Robot.Back)
-            //                     for (let i = 0; i < 7; i++) {
-            //                         if (Line_All_Back[i] > on_line_setpoint) {
-            //                             found += 1
-            //                         }
-            //                     }
-
-            //                     if (found >= 5) {
-            //                         motorGo(-min_speed, -min_speed)
-            //                     }
-            //                     else {
-            //                         break
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     }
-            //     else if (find == Intersection.Left) {
-            //         if (Line_All_Back[0] > on_line_setpoint && Line_All_Back[1] > on_line_setpoint && Line_All_Back[2] > on_line_setpoint && Line_All_Back[5] < 500) {
-            //             _count += 1
-            //             if (_count >= count) {
-            //                 motorGo(min_speed, min_speed)
-            //                 basic.pause(20)
-            //                 while (1) {
-            //                     let _sensor_left = pins.map(ADCRead(ADC_PIN[Sensor_Center_Left]), Color_Line_Center_Left[0], Color_Background_Center_Left[0], 1000, 0)
-            //                     let _sensor_right = pins.map(ADCRead(ADC_PIN[Sensor_Center_Right]), Color_Line_Center_Right[0], Color_Background_Center_Right[0], 1000, 0)
-            //                     if (_sensor_left >= 500 || _sensor_right >= 500) {
-            //                         motorGo(10, 10)
-            //                         basic.pause(50)
-            //                         motorStop()
-            //                         break
-            //                     }
-            //                     else {
-            //                         Follower(Forward_Direction.Backward, 10)
-            //                     }
-            //                 }
-            //                 break
-            //             }
-            //             else {
-            //                 while (1) {
-            //                     let found = 0
-            //                     readAdcAll(Direction_Robot.Back)
-            //                     if (Line_All_Back[0] > on_line_setpoint && Line_All_Back[1] > on_line_setpoint && Line_All_Back[2] > on_line_setpoint && Line_All_Back[5] < 500) {
-            //                         motorGo(-min_speed, -min_speed)
-            //                     }
-            //                     else {
-            //                         break
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     }
-            //     else if (find == Intersection.Right) {
-            //         if (Line_All_Back[3] > on_line_setpoint && Line_All_Back[4] > on_line_setpoint && Line_All_Back[5] > on_line_setpoint && Line_All_Back[0] < 500) {
-            //             _count += 1
-            //             if (_count >= count) {
-            //                 motorGo(min_speed, min_speed)
-            //                 basic.pause(20)
-            //                 while (1) {
-            //                     let _sensor_left = pins.map(ADCRead(ADC_PIN[Sensor_Center_Left]), Color_Line_Center_Left[0], Color_Background_Center_Left[0], 1000, 0)
-            //                     let _sensor_right = pins.map(ADCRead(ADC_PIN[Sensor_Center_Right]), Color_Line_Center_Right[0], Color_Background_Center_Right[0], 1000, 0)
-            //                     if (_sensor_left >= 500 || _sensor_right >= 500) {
-            //                         motorGo(-10, -10)
-            //                         basic.pause(50)
-            //                         motorStop()
-            //                         break
-            //                     }
-            //                     else {
-            //                         Follower(Forward_Direction.Backward, 10)
-            //                     }
-            //                 }
-            //                 break
-            //             }
-            //             else {
-            //                 while (1) {
-            //                     let found = 0
-            //                     readAdcAll(Direction_Robot.Back)
-            //                     if (Line_All_Back[3] > on_line_setpoint && Line_All_Back[4] > on_line_setpoint && Line_All_Back[5] > on_line_setpoint && Line_All_Back[0] < 500) {
-            //                         motorGo(-min_speed, -min_speed)
-            //                     }
-            //                     else {
-            //                         break
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
             Follower(Direction, min_speed)
         }
     }
