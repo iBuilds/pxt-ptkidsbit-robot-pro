@@ -970,8 +970,19 @@ namespace PTKidsBITRobotPRO {
     //% speed1.min=-100 speed1.max=100
     //% speed2.min=-100 speed2.max=100
     export function motorGo(speed1: number, speed2: number): void {
-        speed1 = speed1 + Compensate_Left
-        speed2 = speed2 + Compensate_Right
+        if (speed1 >= 0) {
+            speed1 = speed1 + Compensate_Left
+        }
+        else {
+            speed1 = speed1 - Compensate_Left
+        }
+
+        if (speed2 >= 0) {
+            speed2 = speed2 + Compensate_Right
+        }
+        else {
+            speed2 = speed2 - Compensate_Right
+        }
 
         if (speed1 < -100) {
             speed1 = -100
@@ -1506,7 +1517,7 @@ namespace PTKidsBITRobotPRO {
                                 break
                             }
                             else {
-                                motorGo(10, 10)
+                                motorGo(10 * -break_direction, 10 * -break_direction)
                             }
                         }
                         break
