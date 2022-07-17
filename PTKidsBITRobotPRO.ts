@@ -1582,7 +1582,7 @@ namespace PTKidsBITRobotPRO {
                             }
                         }
                         if (found >= 4) {
-                            motorGo(min_speed, min_speed)
+                            motorGo(min_speed * -break_direction, min_speed * -break_direction)
                         }
                         else {
                             _last_count = _count
@@ -1598,7 +1598,7 @@ namespace PTKidsBITRobotPRO {
                         let _sensor_left = pins.map(ADCRead(ADC_PIN[Sensor_Center_Left]), Color_Line_Center_Left[0], Color_Background_Center_Left[0], 1000, 0)
                         let _sensor_right = pins.map(ADCRead(ADC_PIN[Sensor_Center_Right]), Color_Line_Center_Right[0], Color_Background_Center_Right[0], 1000, 0)
                         if (_sensor_left >= 500 || _sensor_right >= 500) {
-                            motorGo(-10, -10)
+                            motorGo(10 * break_direction, 10 * break_direction)
                             basic.pause(50)
                             motorStop()
                             break
