@@ -254,7 +254,7 @@ namespace PTKidsBITRobotPRO {
             SerialPin.P8,
             BaudRate.BaudRate115200
         )
-        serial.writeLine(data)
+        basic.pause(10)
         serial.writeLine(data)
     }
 
@@ -390,7 +390,7 @@ namespace PTKidsBITRobotPRO {
     //% block="Button Read $button"
     export function buttonRead(button: Button_Name): number {
         sendDataSerial("RB," + button)
-        basic.pause(10)
+        basic.pause(200)
         serial.redirectToUSB()
         return button_state[button]
     }
