@@ -6,77 +6,9 @@
  */
 
 let inputString = ""
-let adc_value: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-let button_state: number[] = [0, 0, 0]
-
-
-
-let Sensor_All_PIN = [6, 5, 4, 3, 2, 1, 0, 8, 14, 13, 12, 11, 10, 9]
-let Sensor_PIN_Front = [5, 4, 3, 2, 1]
-let Sensor_Left_Front = [6]
-let Sensor_Right_Front = [0]
-let Sensor_PIN_Back = [13, 12, 11, 10, 9]
-let Sensor_Left_Back = [14]
-let Sensor_Right_Back = [8]
-let Sensor_Center_Left = 7
-let Sensor_Center_Right = 15
-let Num_Sensor = 5
-let KP = 0.004
-let KD = 0.04
-let Max_Speed = 100
-
-let Version = 1
-let Read_Version = false
-let IMU_Address = 0x68
-let PCA = 0x40
-let initI2C = false
-let initLED = false
-let SERVOS = 0x06
-let Line_LOW_Front = [0, 0, 0, 0, 0, 0, 0, 0]
-let Line_HIGH_Front = [0, 0, 0, 0, 0, 0, 0, 0]
-let Line_LOW_Center = [0, 0]
-let Line_HIGH_Center = [0, 0]
-let Color_Line_All_Front: number[] = []
-let Color_Background_All_Front: number[] = []
-let Color_Line_Front: number[] = []
-let Color_Background_Front: number[] = []
-let Color_Line_Left_Front: number[] = []
-let Color_Background_Left_Front: number[] = []
-let Color_Line_Center_Left: number[] = []
-let Color_Background_Center_Left: number[] = []
-let Color_Line_Right_Front: number[] = []
-let Color_Background_Right_Front: number[] = []
-let Color_Line_Center_Right: number[] = []
-let Color_Background_Center_Right: number[] = []
-let Line_All_Front = [0, 0, 0, 0, 0, 0, 0]
-let Line_LOW_Back = [0, 0, 0, 0, 0, 0, 0, 0]
-let Line_HIGH_Back = [0, 0, 0, 0, 0, 0, 0, 0]
-let Color_Line_All_Back: number[] = []
-let Color_Background_All_Back: number[] = []
-let Color_Line_Back: number[] = []
-let Color_Background_Back: number[] = []
-let Color_Line_Left_Back: number[] = []
-let Color_Background_Left_Back: number[] = []
-let Color_Line_Right_Back: number[] = []
-let Color_Background_Right_Back: number[] = []
-let Line_All_Back = [0, 0, 0, 0, 0, 0, 0]
-let Line_Mode = 0
-let Last_Position = 0
-let Compensate_Left = 0
-let Compensate_Right = 0
-let error = 0
-let P = 0
-let D = 0
-let previous_error = 0
-let PD_Value = 0
-let left_motor_speed = 0
-let right_motor_speed = 0
-let Servo_8_Enable = 0
-let Servo_12_Enable = 0
-let Servo_8_Degree = 0
-let Servo_12_Degree = 0
-let distance = 0
-let timer = 0
+let adc_value = 0
+let position_value = 0
+let button_state = 0
 
 enum Motor_Write {
     //% block="Left"
@@ -127,6 +59,33 @@ enum Sensor {
     Front,
     //% block="Back"
     Back,
+    //% block="Left"
+    Left,
+    //% block="Right"
+    Right
+}
+
+enum LED_Color {
+    //% block="Red"
+    Red = 1,
+    //% block="Green"
+    Green = 2,
+    //% block="Blue"
+    Blue = 3,
+    //% block="White"
+    White = 4,
+    //% block="Black"
+    Black = 5,
+}
+
+enum LED_FB {
+    //% block="Front"
+    Front,
+    //% block="Back"
+    Back
+}
+
+enum LED_LR {
     //% block="Left"
     Left,
     //% block="Right"
@@ -257,10 +216,13 @@ namespace PTKidsBITRobotPRO {
         inputString = serial.readString()
         inputString = inputString.substr(0, inputString.length - 2)
         if (inputString.split(",")[0] == "RS") {
-            adc_value[parseFloat(inputString.split(",")[1])] = parseFloat(inputString.split(",")[2])
+            adc_value = parseFloat(inputString.split(",")[2])
+        }
+        else if (inputString.split(",")[0] == "RP") {
+            position_value = parseFloat(inputString.split(",")[2])
         }
         else if (inputString.split(",")[0] == "RB") {
-            button_state[parseFloat(inputString.split(",")[1])] = parseFloat(inputString.split(",")[2])
+            button_state = parseFloat(inputString.split(",")[2])
         }
     })
 
@@ -282,6 +244,7 @@ namespace PTKidsBITRobotPRO {
     //% block="Motor Stop"
     export function motorStop(): void {
         sendDataSerial("MC,0,0")
+        basic.pause(10)
         serial.redirectToUSB()
     }
 
@@ -293,8 +256,9 @@ namespace PTKidsBITRobotPRO {
     //% left.min=-100 left.max=100
     //% right.min=-100 right.max=100
     export function motorCompensate(left: number, right: number): void {
-        Compensate_Left = left
-        Compensate_Right = right
+        sendDataSerial("CP," + left + "," + right)
+        basic.pause(10)
+        serial.redirectToUSB()
     }
 
     //% group="Motor Control"
@@ -306,10 +270,12 @@ namespace PTKidsBITRobotPRO {
     export function Spin(spin: _Spin, speed: number): void {
         if (spin == _Spin.Left) {
             sendDataSerial("MC," + -speed + "," + speed)
+            basic.pause(10)
             serial.redirectToUSB()
         }
         else if (spin == _Spin.Right) {
             sendDataSerial("MC," + speed + "," + -speed)
+            basic.pause(10)
             serial.redirectToUSB()
         }
     }
@@ -323,10 +289,12 @@ namespace PTKidsBITRobotPRO {
     export function Turn(turn: _Turn, speed: number): void {
         if (turn == _Turn.Left) {
             sendDataSerial("MC,0," + speed)
+            basic.pause(10)
             serial.redirectToUSB()
         }
         else if (turn == _Turn.Right) {
             sendDataSerial("MC," + speed + ",0")
+            basic.pause(10)
             serial.redirectToUSB()
         }
     }
@@ -340,6 +308,7 @@ namespace PTKidsBITRobotPRO {
     //% speed2.min=-255 speed2.max=255
     export function motorGo(speed1: number, speed2: number): void {
         sendDataSerial("MC," + speed1 + "," + speed2)
+        basic.pause(10)
         serial.redirectToUSB()
     }
 
@@ -352,10 +321,12 @@ namespace PTKidsBITRobotPRO {
     export function motorWrite(motor: Motor_Write, speed: number): void {
         if (motor == Motor_Write.Motor_Left) {
             sendDataSerial("MC," + speed + ",0")
+            basic.pause(10)
             serial.redirectToUSB()
         }
         else if (motor == Motor_Write.Motor_Right) {
             sendDataSerial("MC,0," + speed)
+            basic.pause(10)
             serial.redirectToUSB()
         }
     }
@@ -369,10 +340,12 @@ namespace PTKidsBITRobotPRO {
     export function servoWrite(servo: Servo_Write, degree: number): void {
         if (servo == Servo_Write.S0) {
             sendDataSerial("SC,0," + degree)
+            basic.pause(10)
             serial.redirectToUSB()
         }
         else if (servo == Servo_Write.S1) {
             sendDataSerial("SC,1," + degree)
+            basic.pause(10)
             serial.redirectToUSB()
         }
     }
@@ -388,31 +361,7 @@ namespace PTKidsBITRobotPRO {
     //% duration.defl=100
     export function tone(note: number, duration: number): void {
         sendDataSerial("PS," + note + "," + duration)
-        serial.redirectToUSB()
-    }
-
-    //% group="Sensor and ADC"
-    /**
-     * Turn on and turn off Line Sensor 
-     */
-    //% block="Sensor %sensor|Power $sensor_status"
-    export function sensorPower(sensor: Sensor, sensor_status: Sensor_Status): void {
-        let _sensor = ""
-        if (sensor == Sensor.Front) _sensor = "f"
-        else if (sensor == Sensor.Back) _sensor = "b"
-        else if (sensor == Sensor.Left) _sensor = "l"
-        else if (sensor == Sensor.Right) _sensor = "r"
-        sendDataSerial("PL," + _sensor + "," + sensor_status)
-        serial.redirectToUSB()
-    }
-
-    //% group="Sensor and ADC"
-    /**
-     * Turn on and turn off Line Sensor All
-     */
-    //% block="Sensor Power $sensor_status"
-    export function sensorPowerAll(sensor_status: Sensor_Status): void {
-        sendDataSerial("PA," + sensor_status)
+        basic.pause(10)
         serial.redirectToUSB()
     }
 
@@ -432,9 +381,9 @@ namespace PTKidsBITRobotPRO {
     //% block="Button Read $button"
     export function buttonRead(button: Button_Name): number {
         sendDataSerial("RB," + button)
-        basic.pause(200)
+        basic.pause(10)
         serial.redirectToUSB()
-        return button_state[button]
+        return button_state
     }
 
     //% group="Sensor and ADC"
@@ -444,9 +393,9 @@ namespace PTKidsBITRobotPRO {
     //% block="ADC Read $pin"
     export function ADCRead(pin: ADC_Read): number {
         sendDataSerial("RS," + pin)
-        basic.pause(1)
+        basic.pause(10)
         serial.redirectToUSB()
-        return adc_value[pin]
+        return adc_value
     }
 
     //% group="Sensor and ADC"
@@ -455,33 +404,78 @@ namespace PTKidsBITRobotPRO {
      */
     //% block="GETDistance"
     export function distanceRead(maxCmDistance = 500): number {
-        let duration
+        return 0
+    }
 
-        if (control.millis() - timer > 1000) {
-            pins.setPull(DigitalPin.P1, PinPullMode.PullNone)
-            pins.digitalWritePin(DigitalPin.P1, 0)
-            control.waitMicros(2)
-            pins.digitalWritePin(DigitalPin.P1, 1)
-            control.waitMicros(10)
-            pins.digitalWritePin(DigitalPin.P1, 0)
-            duration = pins.pulseIn(DigitalPin.P2, PulseValue.High, maxCmDistance * 58)
-            distance = Math.idiv(duration, 58)
-        }
+    //% group="Sensor and ADC"
+    /**
+     * Turn on and turn off Line Sensor 
+     */
+    //% block="Sensor %sensor|Power $sensor_status"
+    export function sensorPower(sensor: Sensor, sensor_status: Sensor_Status): void {
+        let _sensor = ""
+        if (sensor == Sensor.Front) _sensor = "f"
+        else if (sensor == Sensor.Back) _sensor = "b"
+        else if (sensor == Sensor.Left) _sensor = "l"
+        else if (sensor == Sensor.Right) _sensor = "r"
+        sendDataSerial("PL," + _sensor + "," + sensor_status)
+        basic.pause(10)
+        serial.redirectToUSB()
+        basic.pause(100)
+    }
 
-        pins.setPull(DigitalPin.P1, PinPullMode.PullNone)
-        pins.digitalWritePin(DigitalPin.P1, 0)
-        control.waitMicros(2)
-        pins.digitalWritePin(DigitalPin.P1, 1)
-        control.waitMicros(10)
-        pins.digitalWritePin(DigitalPin.P1, 0)
-        duration = pins.pulseIn(DigitalPin.P2, PulseValue.High, maxCmDistance * 58)
-        let d = Math.idiv(duration, 58)
+    //% group="Sensor and ADC"
+    /**
+     * Turn on and turn off Line Sensor All
+     */
+    //% block="Sensor Power $sensor_status"
+    export function sensorPowerAll(sensor_status: Sensor_Status): void {
+        sendDataSerial("PA," + sensor_status)
+        basic.pause(10)
+        serial.redirectToUSB()
+        basic.pause(100)
+    }
 
-        if (d != 0) {
-            distance = (0.1 * d) + (1 - 0.1) * distance
-        }
-        timer = control.millis()
-        return Math.round(distance)
+    //% group="Sensor and ADC"
+    /**
+     * Set LED Color Left and Right
+     */
+    //% block="Set Color %LED_LR|Sensor 1  $color_1|Sensor 2  $color_2|Sensor 3  $color_3|Sensor 4  $color_4|Sensor 5  $color_5"
+    export function setColorLR(sensor: LED_LR, color_1: LED_Color, color_2: LED_Color, color_3: LED_Color, color_4: LED_Color, color_5: LED_Color): void {
+        let _sensor = ""
+        if (sensor == LED_LR.Left) _sensor = "l"
+        else if (sensor == LED_LR.Right) _sensor = "r"
+        sendDataSerial("SL," + _sensor + "," + color_1 + "," + color_2 + "," + color_3 + "," + color_4 + "," + color_5)
+        basic.pause(10)
+        serial.redirectToUSB()
+        basic.pause(100)
+    }
+
+    //% group="Sensor and ADC"
+    /**
+     * Set LED Color Front and Black
+     */
+    //% block="Set Color %LED_FB|Sensor 1  $color_1|Sensor 2  $color_2|Sensor 3  $color_3|Sensor 4  $color_4|Sensor 5  $color_5|Sensor 6  $color_6|Sensor 7  $color_7"
+    export function setColorFB(sensor: LED_FB, color_1: LED_Color, color_2: LED_Color, color_3: LED_Color, color_4: LED_Color, color_5: LED_Color, color_6: LED_Color, color_7: LED_Color): void {
+        let _sensor = ""
+        if (sensor == LED_FB.Front) _sensor = "f"
+        else if (sensor == LED_FB.Back) _sensor = "b"
+        sendDataSerial("SL," + _sensor + "," + color_1 + "," + color_2 + "," + color_3 + "," + color_4 + "," + color_5 + "," + color_6 + "," + color_7)
+        basic.pause(10)
+        serial.redirectToUSB()
+        basic.pause(100)
+    }
+
+    //% group="Sensor and ADC"
+    /**
+     * Set LED Color All
+     */
+    //% block="Set Color $color"
+    export function setColor(color: LED_Color): void {
+        sendDataSerial("SA," + color)
+        basic.pause(10)
+        serial.redirectToUSB()
+        basic.pause(100)
     }
 
     //% group="Line Follower"
@@ -494,113 +488,7 @@ namespace PTKidsBITRobotPRO {
     //% break_delay.shadow="timePicker"
     //% time.defl=200
     export function TurnLINE(turn: Turn_Line, speed: number, sensor: Turn_Sensor, time: number) {
-        let ADC_PIN = [
-            ADC_Read.ADC0,
-            ADC_Read.ADC1,
-            ADC_Read.ADC2,
-            ADC_Read.ADC3,
-            ADC_Read.ADC4,
-            ADC_Read.ADC5,
-            ADC_Read.ADC6,
-            ADC_Read.ADC7,
-            ADC_Read.ADC8,
-            ADC_Read.ADC9,
-            ADC_Read.ADC10,
-            ADC_Read.ADC11,
-            ADC_Read.ADC12,
-            ADC_Read.ADC13,
-            ADC_Read.ADC14,
-            ADC_Read.ADC15
-        ]
-        let on_line = 0
-        let adc_sensor_pin = sensor - 1
-        let error = 0
-        let motor_speed = 0
-        let motor_slow = 20
-        let timer = control.millis()
-        let _position = 0
-        let _position_min = 0
-        let _position_max = 0
-
-        while (1) {
-            on_line = 0
-            for (let i = 0; i < Sensor_PIN_Front.length; i++) {
-                if ((pins.map(ADCRead(ADC_PIN[Sensor_PIN_Front[i]]), Color_Line_All_Front[i], Color_Background_All_Front[i], 1000, 0)) >= 500) {
-                    on_line += 1;
-                }
-            }
-
-            if (on_line == 0) {
-                break
-            }
-
-            error = timer - (control.millis() - time)
-            motor_speed = error
-
-            if (motor_speed > speed) {
-                motor_speed = speed
-            }
-            else if (motor_speed < 0) {
-                motor_speed = motor_slow
-            }
-
-            if (turn == Turn_Line.Left) {
-                motorGo(-motor_speed, motor_speed)
-            }
-            else if (turn == Turn_Line.Right) {
-                motorGo(motor_speed, -motor_speed)
-            }
-        }
-        while (1) {
-            // if ((pins.map(ADCRead(ADC_PIN[Sensor_All_PIN[adc_sensor_pin]]), Color_Line[adc_sensor_pin], Color_Background[adc_sensor_pin], 1000, 0)) >= 800) {
-            //     motorStop()
-            //     break
-            // }
-            if (sensor == Turn_Sensor.Center) {
-                _position_min = 1250
-                _position_max = 1750
-            }
-            else if (sensor == Turn_Sensor.ADC1) {
-                _position_min = 2500
-                _position_max = 3000
-            }
-            else if (sensor == Turn_Sensor.ADC2) {
-                _position_min = 1500
-                _position_max = 2000
-            }
-            else if (sensor == Turn_Sensor.ADC3) {
-                _position_min = 1000
-                _position_max = 1500
-            }
-            else if (sensor == Turn_Sensor.ADC4) {
-                _position_min = 0
-                _position_max = 500
-            }
-
-            _position = GETPosition(Direction_Robot.Front)
-            if (_position > _position_min && _position < _position_max) {
-                motorStop()
-                break
-            }
-            else {
-                error = timer - (control.millis() - time)
-                motor_speed = error
-
-                if (motor_speed > speed) {
-                    motor_speed = speed
-                }
-                else if (motor_speed < 0) {
-                    motor_speed = motor_slow
-                }
-
-                if (turn == Turn_Line.Left) {
-                    motorGo(-motor_speed, motor_speed)
-                }
-                else if (turn == Turn_Line.Right) {
-                    motorGo(motor_speed, -motor_speed)
-                }
-            }
-        }
+        
     }
 
     //% group="Line Follower"
@@ -613,35 +501,7 @@ namespace PTKidsBITRobotPRO {
     //% time.shadow="timePicker"
     //% time.defl=200
     export function ForwardTIME(time: number, min_speed: number, max_speed: number, kp: number, kd: number) {
-        let timer = control.millis()
-
-        while (control.millis() - timer < time) {
-            error = GETPosition(Direction_Robot.Back) - (((Num_Sensor - 1) * 1000) / 2)
-            P = error
-            D = error - previous_error
-            PD_Value = (kp * P) + (kd * D)
-            previous_error = error
-
-            left_motor_speed = min_speed + PD_Value
-            right_motor_speed = min_speed - PD_Value
-
-            if (left_motor_speed > max_speed) {
-                left_motor_speed = max_speed
-            }
-            else if (left_motor_speed < -max_speed) {
-                left_motor_speed = -max_speed
-            }
-
-            if (right_motor_speed > max_speed) {
-                right_motor_speed = max_speed
-            }
-            else if (right_motor_speed < -max_speed) {
-                right_motor_speed = -max_speed
-            }
-
-            motorGo(-left_motor_speed, -right_motor_speed)
-        }
-        motorStop()
+        
     }
 
     //% group="Line Follower"
@@ -694,168 +554,31 @@ namespace PTKidsBITRobotPRO {
     //% min_speed.defl=30
     //% min_speed.min=0 min_speed.max=100
     export function Follower(Direction: Forward_Direction, min_speed: number) {
-        if (Direction == Forward_Direction.Forward) {
-            error = GETPosition(Direction_Robot.Front) - (((Num_Sensor - 1) * 1000) / 2)
-            P = error
-            D = error - previous_error
-            if (min_speed == 0) {
-                PD_Value = (0.005 * P) + (0.001 * D)
-                previous_error = error
-            }
-            else {
-                PD_Value = (KP * P) + (KD * D)
-                previous_error = error
-            }
-
-            left_motor_speed = min_speed - PD_Value
-            right_motor_speed = min_speed + PD_Value
-
-            if (left_motor_speed > Max_Speed) {
-                left_motor_speed = Max_Speed
-            }
-            else if (left_motor_speed < -Max_Speed) {
-                left_motor_speed = -Max_Speed
-            }
-
-            if (right_motor_speed > Max_Speed) {
-                right_motor_speed = Max_Speed
-            }
-            else if (right_motor_speed < -Max_Speed) {
-                right_motor_speed = -Max_Speed
-            }
-
-            motorGo(left_motor_speed, right_motor_speed)
-        }
-        else {
-            error = GETPosition(Direction_Robot.Back) - (((Num_Sensor - 1) * 1000) / 2)
-            P = error
-            D = error - previous_error
-            PD_Value = (KP * P) + (KD * D)
-            previous_error = error
-
-            left_motor_speed = min_speed + PD_Value
-            right_motor_speed = min_speed - PD_Value
-
-            if (left_motor_speed > Max_Speed) {
-                left_motor_speed = Max_Speed
-            }
-            else if (left_motor_speed < -Max_Speed) {
-                left_motor_speed = -Max_Speed
-            }
-
-            if (right_motor_speed > Max_Speed) {
-                right_motor_speed = Max_Speed
-            }
-            else if (right_motor_speed < -Max_Speed) {
-                right_motor_speed = -Max_Speed
-            }
-
-            motorGo(-left_motor_speed, -right_motor_speed)
-        }
+        
     }
 
     //% group="Line Follower"
     /**
-     * Get Position Line
+     * Read Position Line
      */
-    //% block="GETPosition %Direction_Robot"
-    export function GETPosition(Direction: Direction_Robot): number {
-        let ADC_PIN = [
-            ADC_Read.ADC0,
-            ADC_Read.ADC1,
-            ADC_Read.ADC2,
-            ADC_Read.ADC3,
-            ADC_Read.ADC4,
-            ADC_Read.ADC5,
-            ADC_Read.ADC6,
-            ADC_Read.ADC7,
-            ADC_Read.ADC8,
-            ADC_Read.ADC9,
-            ADC_Read.ADC10,
-            ADC_Read.ADC11,
-            ADC_Read.ADC12,
-            ADC_Read.ADC13,
-            ADC_Read.ADC14,
-            ADC_Read.ADC15
-        ]
-        let Average = 0
-        let Sum_Value = 0
-        let ON_Line = 0
-
-        if (Direction == Direction_Robot.Front) {
-            for (let i = 0; i < Num_Sensor; i++) {
-                let Value_Sensor = 0;
-                if (Line_Mode == 0) {
-                    Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Front[i]]), Color_Line_Front[i], Color_Background_Front[i], 1000, 0)
-                    if (Value_Sensor < 0) {
-                        Value_Sensor = 0
-                    }
-                    else if (Value_Sensor > 1000) {
-                        Value_Sensor = 1000
-                    }
-                }
-                else {
-                    Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Front[i]]), Color_Background_Front[i], Color_Line_Front[i], 1000, 0)
-                    if (Value_Sensor < 0) {
-                        Value_Sensor = 0
-                    }
-                    else if (Value_Sensor > 1000) {
-                        Value_Sensor = 1000
-                    }
-                }
-                if (Value_Sensor > 200) {
-                    ON_Line = 1;
-                }
-                Average += Value_Sensor * (i * 1000)
-                Sum_Value += Value_Sensor
-            }
-        }
-        else {
-            for (let i = 0; i < Num_Sensor; i++) {
-                let Value_Sensor = 0;
-                if (Line_Mode == 0) {
-                    Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Back[i]]), Color_Line_Back[i], Color_Background_Back[i], 1000, 0)
-                    if (Value_Sensor < 0) {
-                        Value_Sensor = 0
-                    }
-                    else if (Value_Sensor > 1000) {
-                        Value_Sensor = 1000
-                    }
-                }
-                else {
-                    Value_Sensor = pins.map(ADCRead(ADC_PIN[Sensor_PIN_Back[i]]), Color_Background_Back[i], Color_Line_Back[i], 1000, 0)
-                    if (Value_Sensor < 0) {
-                        Value_Sensor = 0
-                    }
-                    else if (Value_Sensor > 1000) {
-                        Value_Sensor = 1000
-                    }
-                }
-                if (Value_Sensor > 200) {
-                    ON_Line = 1;
-                }
-                Average += Value_Sensor * (i * 1000)
-                Sum_Value += Value_Sensor
-            }
-        }
-
-        if (ON_Line == 0) {
-            if (Last_Position < (Num_Sensor - 1) * 1000 / 2) {
-                return (Num_Sensor - 1) * 1000
-            }
-            else {
-                return 0
-            }
-        }
-        Last_Position = Average / Sum_Value;
-        return Math.round(((Num_Sensor - 1) * 1000) - Last_Position)
+    //% block="Position Read $sensor"
+    export function positionRead(sensor: Sensor): number {
+        let _sensor = ""
+        if (sensor == Sensor.Front) _sensor = "f"
+        else if (sensor == Sensor.Back) _sensor = "b"
+        else if (sensor == Sensor.Left) _sensor = "l"
+        else if (sensor == Sensor.Right) _sensor = "r"
+        sendDataSerial("RP," + _sensor)
+        basic.pause(10)
+        serial.redirectToUSB()
+        return position_value
     }
 
     //% group="Line Follower"
     /**
      * Calibrate Sensor
      */
-    //% block="Calibrate Sensor $mode"
+    //% block="Set Calibrate Sensor $mode"
     export function SensorCalibrate(mode: Caribrate_Mode): void {
         if (mode == Caribrate_Mode.MODE1) {
             sendDataSerial("CS,1")
@@ -864,6 +587,7 @@ namespace PTKidsBITRobotPRO {
             sendDataSerial("CS,2")
         }
         inputString = serial.readLine()
+        basic.pause(10)
         serial.redirectToUSB()
     }
 }
