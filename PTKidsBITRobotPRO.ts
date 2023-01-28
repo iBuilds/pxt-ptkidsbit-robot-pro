@@ -122,6 +122,24 @@ enum Button_Status {
     Released = 0
 }
 
+enum Sensor {
+    //% block="Front"
+    Front,
+    //% block="Back"
+    Back,
+    //% block="Left"
+    Left,
+    //% block="Right"
+    Right
+}
+
+enum Sensor_Status {
+    //% block="ON"
+    ON = 1,
+    //% block="OFF"
+    OFF = 0
+}
+
 enum ADC_Read {
     //% block="ADC0"
     ADC0 = 0,
@@ -254,7 +272,6 @@ namespace PTKidsBITRobotPRO {
             SerialPin.P8,
             BaudRate.BaudRate115200
         )
-        basic.pause(10)
         serial.writeLine(data)
     }
 
@@ -376,6 +393,31 @@ namespace PTKidsBITRobotPRO {
 
     //% group="Sensor and ADC"
     /**
+     * Turn on and turn off Line Sensor 
+     */
+    //% block="Sensor %sensor|Power $sensor_status"
+    export function sensorPower(sensor: Sensor, sensor_status: Sensor_Status): void {
+        let _sensor = ""
+        if (sensor == Sensor.Front) _sensor = "f"
+        else if (sensor == Sensor.Back) _sensor = "b"
+        else if (sensor == Sensor.Left) _sensor = "l"
+        else if (sensor == Sensor.Right) _sensor = "r"
+        sendDataSerial("PL," + _sensor + "," + sensor_status)
+        serial.redirectToUSB()
+    }
+
+    //% group="Sensor and ADC"
+    /**
+     * Turn on and turn off Line Sensor All
+     */
+    //% block="Sensor Power $sensor_status"
+    export function sensorPowerAll(sensor_status: Sensor_Status): void {
+        sendDataSerial("PA," + sensor_status)
+        serial.redirectToUSB()
+    }
+
+    //% group="Sensor and ADC"
+    /**
      * Runs the program when the button is pressed
      */
     //% block="When $button|is %duration"
@@ -402,7 +444,7 @@ namespace PTKidsBITRobotPRO {
     //% block="ADC Read $pin"
     export function ADCRead(pin: ADC_Read): number {
         sendDataSerial("RS," + pin)
-        basic.pause(10)
+        basic.pause(1)
         serial.redirectToUSB()
         return adc_value[pin]
     }
