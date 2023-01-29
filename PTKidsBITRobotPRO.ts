@@ -209,6 +209,12 @@ enum Stop_Position {
     Back
 }
 
+enum Align {
+    //% block="Enable"
+    enable = 1,
+    //% block="Disable"
+    disable = 0
+}
 
 //% color="#48C9B0" icon="\u2707"
 namespace PTKidsBITRobotPRO {
@@ -523,13 +529,21 @@ namespace PTKidsBITRobotPRO {
     /**
      * Turn Left or Right Follower Line Mode
      */
-    //% block="TurnLINE %turn|Speed\n %speed|Sensor %sensor|Fast Time %time"
-    //% speed.min=0 speed.max=100
-    //% time.shadow="timePicker"
-    //% break_delay.shadow="timePicker"
-    //% time.defl=200
-    export function TurnLINE(turn: Turn_Line, speed: number, sensor: Turn_Sensor, time: number) {
-        
+    //% block="Turn   %turn|Sensor %sensor|Align  %align|Speed\n %speed"
+    //% speed.min=1 speed.max=3
+    //% speed.defl=2
+    //% set.defl=Set.disable
+    export function TurnLINE(turn: Turn_Line, sensor: LED_FB, align: Align, speed: number) {
+        let _direction = ""
+        let _sensor = ""
+        if (turn == Turn_Line.Left) _direction = "l"
+        else if (turn == Turn_Line.Right) _direction = "r"
+        if (sensor == LED_FB.Front) _direction = "f"
+        else if (sensor == LED_FB.Back) _direction = "b"
+        sendDataSerial("TL," + _direction + "," + _sensor + "," + speed + "," + align)
+        while (!serial.readLine())
+        basic.pause(10)
+        serial.redirectToUSB()
     }
 
     //% group="Line Follower"
@@ -545,7 +559,7 @@ namespace PTKidsBITRobotPRO {
     //% time.defl=500
     export function ForwardTIME(time: number, speed: number, kp: number, kd: number) {
         sendDataSerial("FT," + speed + "," + kp + "," + kd + "," + time)
-        serial.readLine()
+        while (!serial.readLine())
         basic.pause(10)
         serial.redirectToUSB()
     }
@@ -569,21 +583,35 @@ namespace PTKidsBITRobotPRO {
     /**
      * Line Follower Forward find Line
      */
-    //% block="Junction\n\n %Intersection|Direction\n %Forward_Direction|Count Line %count|Base Speed %base_speed|Stop Point %Stop_Position"
+    //% block="Junction   %Find_Line|Direction  %Forward_Direction|Stop Point %Stop_Position|Count %count|Speed %speed|KP %kp|KD %kd"
     //% find.defl=Intersection.Center
-    //% count.defl=1
-    //% min_speed.defl=30
-    //% min_speed.min=0 min_speed.max=100
     //% stop_position.defl=Stop_Position.Center
-    export function ForwardLINECount(find: Intersection, Direction: Forward_Direction, count: number, min_speed: number, stop_position: Stop_Position) {
-        
+    //% speed.min=0 speed.max=255
+    //% count.defl=2
+    //% speed.defl=70
+    //% kp.defl=0.15
+    //% kd.defl=1
+    export function ForwardLINECount(find: Intersection, direction: Forward_Direction, stop_position: Stop_Position, count: number, speed: number, kp: number, kd: number) {
+        let _intersection = ""
+        let _stop_position = ""
+        if (find == Intersection.Center) _intersection = "c"
+        else if (find == Intersection.Left) _intersection = "l"
+        else if (find == Intersection.Right) _intersection = "r"
+        if (stop_position == Stop_Position.Front) _stop_position = "f"
+        else if (stop_position == Stop_Position.Center) _stop_position = "c"
+        else if (stop_position == Stop_Position.Back) _stop_position = "b"
+        if (direction == Forward_Direction.Forward) sendDataSerial("FL," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
+        else if (direction == Forward_Direction.Backward) sendDataSerial("BL," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
+        serial.readLine()
+        basic.pause(10)
+        serial.redirectToUSB()
     }
 
     //% group="Line Follower"
     /**
      * Line Follower Forward find Line
      */
-    //% block="Junction\n\n %Find_Line|Direction\n %Forward_Direction|Stop Point %Stop_Position|Speed %speed|KP %kp|KD %kd"
+    //% block="Junction   %Find_Line|Direction  %Forward_Direction|Stop Point %Stop_Position|Speed %speed|KP %kp|KD %kd"
     //% find.defl=Intersection.Center
     //% stop_position.defl=Stop_Position.Center
     //% speed.min=0 speed.max=255
@@ -599,8 +627,8 @@ namespace PTKidsBITRobotPRO {
         if (stop_position == Stop_Position.Front) _stop_position = "f"
         else if (stop_position == Stop_Position.Center) _stop_position = "c"
         else if (stop_position == Stop_Position.Back) _stop_position = "b"
-        if (direction == Forward_Direction.Forward) sendDataSerial("FR," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
-        else if (direction == Forward_Direction.Backward) sendDataSerial("BR," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
+        if (direction == Forward_Direction.Forward) sendDataSerial("FL," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
+        else if (direction == Forward_Direction.Backward) sendDataSerial("BL," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
         serial.readLine()
         basic.pause(10)
         serial.redirectToUSB()
