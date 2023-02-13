@@ -6,9 +6,6 @@
  */
 
 let inputString = ""
-let adc_value = 0
-let position_value = 0
-let button_state = 0
 
 enum Motor_Write {
     //% block="Left"
@@ -150,7 +147,7 @@ enum ADC_Read {
     ADC23 = 23
 }
 
-enum Caribrate_Mode {
+enum Calibrate_Mode {
     //% block="MODE1"
     MODE1,
     //% block="MODE2"
@@ -218,22 +215,6 @@ enum Align {
 
 //% color="#48C9B0" icon="\u2707"
 namespace PTKidsBITRobotPRO {
-    // serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
-    //     inputString = serial.readString()
-    //     inputString = inputString.substr(0, inputString.length - 2)
-    //     serial.redirectToUSB()
-    //     serial.writeLine("" + button_state)
-    //     if (inputString.split(",")[0] == "RS") {
-    //         adc_value = parseFloat(inputString.split(",")[2])
-    //     }
-    //     else if (inputString.split(",")[0] == "RP") {
-    //         position_value = parseFloat(inputString.split(",")[2])
-    //     }
-    //     else if (inputString.split(",")[0] == "RB") {
-    //         button_state = parseFloat(inputString.split(",")[2])
-    //     }
-    // })
-
     function sendDataSerial(data: string) {
         inputString = ""
         serial.setWriteLinePadding(0)
@@ -245,7 +226,7 @@ namespace PTKidsBITRobotPRO {
         serial.writeLine(data)
     }
 
-    //% group="Motor Control"
+    //% group="Movement Control"
     /**
      * Stop all Motor
      */
@@ -256,7 +237,7 @@ namespace PTKidsBITRobotPRO {
         serial.redirectToUSB()
     }
 
-    //% group="Motor Control"
+    //% group="Movement Control"
     /**
      * Set Power Brake Motor
      */
@@ -269,27 +250,41 @@ namespace PTKidsBITRobotPRO {
         serial.redirectToUSB()
     }
 
-    //% group="Motor Control"
+    // //% group="Movement Control"
+    // /**
+    //  * Compensate Speed Motor Left and Motor Right
+    //  */
+    // //% block="Compensate Left %Motor_Left|Compensate Right %Motor_Right"
+    // //% left.min=-255 left.max=255
+    // //% right.min=-255 right.max=255
+    // export function motorCompensate(left: number, right: number): void {
+    //     sendDataSerial("CP," + left + "," + right)
+    //     basic.pause(10)
+    //     serial.redirectToUSB()
+    // }
+
+    //% group="Movement Control"
     /**
-     * Compensate Speed Motor Left and Motor Right
+     * Spin the Robot to Left or Right. The degree is adjustable.
      */
-    //% block="Compensate Left %Motor_Left|Compensate Right %Motor_Right"
-    //% left.min=-255 left.max=255
-    //% right.min=-255 right.max=255
-    export function motorCompensate(left: number, right: number): void {
-        sendDataSerial("CP," + left + "," + right)
+    //% block="Spin %degree degree"
+    //% degree.min=-360 degree.max=360
+    //% degree.defl=45
+    export function spinDegree(degree: number): void {
+        sendDataSerial("TD," + degree)
+        serial.readLine()
         basic.pause(10)
         serial.redirectToUSB()
     }
 
-    //% group="Motor Control"
+    //% group="Movement Control"
     /**
      * Spin the Robot to Left or Right. The speed motor is adjustable between 0 to 100.
      */
     //% block="Spin %_Spin|Speed %Speed"
     //% speed.min=0 speed.max=255
     //% speed.defl=100
-    export function Spin(spin: _Spin, speed: number): void {
+    export function spin(spin: _Spin, speed: number): void {
         if (spin == _Spin.Left) {
             sendDataSerial("MC," + -speed + "," + speed)
             basic.pause(10)
@@ -302,14 +297,14 @@ namespace PTKidsBITRobotPRO {
         }
     }
 
-    //% group="Motor Control"
+    //% group="Movement Control"
     /**
      * Turn the Robot to Left or Right. The speed motor is adjustable between 0 to 100.
      */
     //% block="Turn %_Turn|Speed %Speed"
     //% speed.min=0 speed.max=255
     //% speed.defl=100
-    export function Turn(turn: _Turn, speed: number): void {
+    export function turn(turn: _Turn, speed: number): void {
         if (turn == _Turn.Left) {
             sendDataSerial("MC,0," + speed)
             basic.pause(10)
@@ -322,7 +317,7 @@ namespace PTKidsBITRobotPRO {
         }
     }
 
-    //% group="Motor Control"
+    //% group="Movement Control"
     /**
      * Control motors speed both at the same time. The speed motors is adjustable between -100 to 100.
      */
@@ -337,7 +332,7 @@ namespace PTKidsBITRobotPRO {
         serial.redirectToUSB()
     }
 
-    //% group="Motor Control"
+    //% group="Movement Control"
     /**
      * Control motor speed 1 channel. The speed motor is adjustable between -100 to 100.
      */
@@ -407,6 +402,7 @@ namespace PTKidsBITRobotPRO {
      */
     //% block="Button Read $button"
     export function buttonRead(button: Button_Name): number {
+        let button_state = 0
         sendDataSerial("RB," + button)
         inputString = serial.readString()
         inputString = inputString.substr(0, inputString.length - 2)
@@ -422,6 +418,7 @@ namespace PTKidsBITRobotPRO {
      */
     //% block="ADC Read $pin"
     export function ADCRead(pin: ADC_Read): number {
+        let adc_value = 0
         sendDataSerial("RS," + pin)
         inputString = serial.readString()
         inputString = inputString.substr(0, inputString.length - 2)
@@ -436,8 +433,15 @@ namespace PTKidsBITRobotPRO {
      * Read Distance from Ultrasonic Sensor
      */
     //% block="GETDistance"
-    export function distanceRead(maxCmDistance = 500): number {
-        return 0
+    export function distanceRead(): number {
+        let distance = 0
+        sendDataSerial("RD")
+        inputString = serial.readString()
+        inputString = inputString.substr(0, inputString.length - 2)
+        distance = parseFloat(inputString)
+        basic.pause(30)
+        serial.redirectToUSB()
+        return distance
     }
 
     //% group="Sensor and ADC"
@@ -532,16 +536,16 @@ namespace PTKidsBITRobotPRO {
     //% block="Turn   %turn|Sensor %sensor|Align  %align|Speed\n %speed"
     //% speed.min=1 speed.max=3
     //% speed.defl=2
-    //% set.defl=Set.disable
+    //% align.defl=Align.disable
     export function TurnLINE(turn: Turn_Line, sensor: LED_FB, align: Align, speed: number) {
         let _direction = ""
         let _sensor = ""
         if (turn == Turn_Line.Left) _direction = "l"
         else if (turn == Turn_Line.Right) _direction = "r"
-        if (sensor == LED_FB.Front) _direction = "f"
-        else if (sensor == LED_FB.Back) _direction = "b"
+        if (sensor == LED_FB.Front) _sensor = "f"
+        else if (sensor == LED_FB.Back) _sensor = "b"
         sendDataSerial("TL," + _direction + "," + _sensor + "," + speed + "," + align)
-        while (!serial.readLine())
+        serial.readLine()
         basic.pause(10)
         serial.redirectToUSB()
     }
@@ -550,34 +554,35 @@ namespace PTKidsBITRobotPRO {
     /**
      * Line Follower Forward Timer
      */
-    //% block="Time  %time|Speed %base_speed|KP %kp|KD %kd"
+    //% block="Direction %direction|Time  %time|Speed %base_speed|KP %kp|KD %kd"
     //% speed.min=0 speed.max=255
     //% time.shadow="timePicker"
     //% speed.defl=180
     //% kp.defl=0.4
     //% kd.defl=4
     //% time.defl=500
-    export function ForwardTIME(time: number, speed: number, kp: number, kd: number) {
-        sendDataSerial("FT," + speed + "," + kp + "," + kd + "," + time)
-        while (!serial.readLine())
+    export function ForwardTIME(direction: Forward_Direction, time: number, speed: number, kp: number, kd: number) {
+        if (direction == Forward_Direction.Forward) sendDataSerial("FT," + speed + "," + kp + "," + kd + "," + time)
+        else if (direction == Forward_Direction.Backward) sendDataSerial("BT," + speed + "," + kp + "," + kd + "," + time)
+        serial.readLine()
         basic.pause(10)
         serial.redirectToUSB()
     }
 
-    //% group="Line Follower"
-    /**
-     * Line Follower Forward find Custom Line
-     */
-    //% block="Find %sensor|Min Speed %base_speed|Max Speed %max_speed|KP %kp|KD %kd"
-    //% sensor.defl="0--111"
-    //% min_speed.defl=30
-    //% max_speed.defl=100
-    //% kp.defl=0.01
-    //% min_speed.min=0 min_speed.max=100
-    //% max_speed.min=0 max_speed.max=100
-    export function ForwardLINECustom(sensor: string, min_speed: number, max_speed: number, kp: number, kd: number) {
+    // //% group="Line Follower"
+    // /**
+    //  * Line Follower Forward find Custom Line
+    //  */
+    // //% block="Find %sensor|Min Speed %base_speed|Max Speed %max_speed|KP %kp|KD %kd"
+    // //% sensor.defl="0--111"
+    // //% min_speed.defl=30
+    // //% max_speed.defl=100
+    // //% kp.defl=0.01
+    // //% min_speed.min=0 min_speed.max=100
+    // //% max_speed.min=0 max_speed.max=100
+    // export function ForwardLINECustom(sensor: string, min_speed: number, max_speed: number, kp: number, kd: number) {
         
-    }
+    // }
 
     //% group="Line Follower"
     /**
@@ -600,8 +605,8 @@ namespace PTKidsBITRobotPRO {
         if (stop_position == Stop_Position.Front) _stop_position = "f"
         else if (stop_position == Stop_Position.Center) _stop_position = "c"
         else if (stop_position == Stop_Position.Back) _stop_position = "b"
-        if (direction == Forward_Direction.Forward) sendDataSerial("FL," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
-        else if (direction == Forward_Direction.Backward) sendDataSerial("BL," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
+        if (direction == Forward_Direction.Forward) sendDataSerial("FC," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position + "," + count)
+        else if (direction == Forward_Direction.Backward) sendDataSerial("BC," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position + "," + count)
         serial.readLine()
         basic.pause(10)
         serial.redirectToUSB()
@@ -652,6 +657,7 @@ namespace PTKidsBITRobotPRO {
     //% block="Position Read $sensor"
     export function positionRead(sensor: Sensor): number {
         let _sensor = ""
+        let position_value = 0
         if (sensor == Sensor.Front) _sensor = "f"
         else if (sensor == Sensor.Back) _sensor = "b"
         else if (sensor == Sensor.Left) _sensor = "l"
@@ -670,11 +676,11 @@ namespace PTKidsBITRobotPRO {
      * Calibrate Sensor
      */
     //% block="Set Calibrate Sensor $mode"
-    export function SensorCalibrate(mode: Caribrate_Mode): void {
-        if (mode == Caribrate_Mode.MODE1) {
+    export function SensorCalibrate(mode: Calibrate_Mode): void {
+        if (mode == Calibrate_Mode.MODE1) {
             sendDataSerial("CS,1")
         }
-        else if (mode == Caribrate_Mode.MODE2) {
+        else if (mode == Calibrate_Mode.MODE2) {
             sendDataSerial("CS,2")
         }
         basic.pause(10)
