@@ -6,6 +6,7 @@
  */
 
 let inputString = ""
+let distance = 0
 
 enum Motor_Write {
     //% block="Left"
@@ -434,11 +435,12 @@ namespace PTKidsBITRobotPRO {
      */
     //% block="GETDistance"
     export function distanceRead(): number {
-        let distance = 0
         sendDataSerial("RD")
         inputString = serial.readString()
         inputString = inputString.substr(0, inputString.length - 2)
-        distance = parseFloat(inputString)
+        if (parseFloat(inputString) >= 0) {
+            distance = parseFloat(inputString)
+        }
         basic.pause(30)
         serial.redirectToUSB()
         return distance
@@ -643,11 +645,16 @@ namespace PTKidsBITRobotPRO {
     /**
      * Basic Line Follower
      */
-    //% block="Direction %Forward_Direction|Speed %base_speed"
-    //% min_speed.defl=30
-    //% min_speed.min=0 min_speed.max=100
-    export function Follower(Direction: Forward_Direction, min_speed: number) {
-        
+    //% block="Direction %Forward_Direction|Speed %base_speed|KP %kp|KD %kd"
+    //% speed.min=0 min_speed.max=255
+    //% speed.defl=50
+    //% kp.defl=0.12
+    //% kd.defl=0.05
+    export function Follower(direction: Forward_Direction, speed: number, kp: number, kd: number) {
+        if (direction == Forward_Direction.Forward) sendDataSerial("FN," + speed + "," + kp + "," + kd)
+        else if (direction == Forward_Direction.Backward) sendDataSerial("BN," + speed + "," + kp + "," + kd)
+        basic.pause(5)
+        serial.redirectToUSB()
     }
 
     //% group="Line Follower"
