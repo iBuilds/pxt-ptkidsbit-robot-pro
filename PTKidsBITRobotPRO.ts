@@ -394,7 +394,11 @@ namespace PTKidsBITRobotPRO {
      */
     //% block="When $button|is %duration"
     export function onButton(button: Button_Name, status: Button_Status): void {
-        while (PTKidsBITRobotPRO.buttonRead(button) != status);
+        let timer = control.millis()
+        while (1) {
+            if (PTKidsBITRobotPRO.buttonRead(button) != status) timer = control.millis()
+            if (control.millis() - timer > 110) break
+        }
     }
 
     //% group="Sensor and ADC"
@@ -408,7 +412,7 @@ namespace PTKidsBITRobotPRO {
         inputString = serial.readString()
         inputString = inputString.substr(0, inputString.length - 2)
         button_state = parseFloat(inputString)
-        basic.pause(10)
+        basic.pause(100)
         serial.redirectToUSB()
         return button_state
     }
