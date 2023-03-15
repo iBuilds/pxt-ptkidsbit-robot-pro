@@ -409,7 +409,6 @@ namespace PTKidsBITRobotPRO {
     //% block="When $button|is %status"
     export function buttonEvent(button: Button_Name, status: Button_Status, a: Action) {
         let state = button + status
-        serial.writeNumber(state)
         let item: KV = { key: state, action: a }
         kbCallback.push(item)
     }
