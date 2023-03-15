@@ -38,18 +38,18 @@ enum Servo_Write {
 
 enum Button_Name {
     //% block="BUTTONA"
-    BUTTONA = 0,
+    BUTTONA = 0x10,
     //% block="BUTTONB"
-    BUTTONB = 1,
+    BUTTONB = 0x20,
     //% block="BUTTONC"
-    BUTTONC = 2
+    BUTTONC = 0x30
 }
 
 enum Button_Status {
     //% block="Pressed"
-    Pressed = 1,
+    Pressed = 0x01,
     //% block="Released"
-    Released = 0
+    Released = 0x00
 }
 
 enum Sensor {
@@ -214,8 +214,22 @@ enum Align {
     disable = 0
 }
 
+enum Button_State {
+    state_1 = 0x10,
+    state_2 = 0x11,
+    state_3 = 0x20,
+    state_4 = 0x21,
+    state_5 = 0x30,
+    state_6 = 0x31
+}
+interface KV {
+    key: Button_State;
+    action: Action;
+}
+
 //% color="#48C9B0" icon="\u2707"
 namespace PTKidsBITRobotPRO {
+    let kbCallback: KV[] = []
     function sendDataSerial(data: string) {
         inputString = ""
         serial.setWriteLinePadding(0)
@@ -392,14 +406,21 @@ namespace PTKidsBITRobotPRO {
     /**
      * Runs the program when the button is pressed
      */
-    //% block="When $button|is %duration"
-    export function onButton(button: Button_Name, status: Button_Status): void {
-        let timer = control.millis()
-        while (1) {
-            if (PTKidsBITRobotPRO.buttonRead(button) != status) timer = control.millis()
-            if (control.millis() - timer > 110) break
-        }
+    //% block="When $button|is %status"
+    export function buttonEvent(button: Button_Name, status: Button_Status, a: Action) {
+        let state = button + status
+        serial.writeNumber(state)
+        let item: KV = { key: state, action: a }
+        kbCallback.push(item)
     }
+
+    // export function onButton(button: Button_Name, status: Button_Status): void {
+    //     let timer = control.millis()
+    //     while (1) {
+    //         if (PTKidsBITRobotPRO.buttonRead(button) != status) timer = control.millis()
+    //         if (control.millis() - timer > 110) break
+    //     }
+    // }
 
     //% group="Sensor and ADC"
     /**
@@ -408,11 +429,15 @@ namespace PTKidsBITRobotPRO {
     //% block="Button Read $button"
     export function buttonRead(button: Button_Name): number {
         let button_state = 0
-        sendDataSerial("RB," + button)
+        let button_name = 0
+        if (button == Button_Name.BUTTONA) button_name = 0
+        else if (button == Button_Name.BUTTONB) button_name = 1
+        else if (button == Button_Name.BUTTONC) button_name = 2
+        sendDataSerial("RB," + button_name)
         inputString = serial.readString()
         inputString = inputString.substr(0, inputString.length - 2)
         button_state = parseFloat(inputString)
-        basic.pause(100)
+        basic.pause(10)
         serial.redirectToUSB()
         return button_state
     }
@@ -697,4 +722,34 @@ namespace PTKidsBITRobotPRO {
         basic.pause(10)
         serial.redirectToUSB()
     }
+
+    let x: number
+    let i: number = 1;
+    function patorlState(): number {
+        switch (i) {
+            case 1: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONA) == 0 ? 0x10 : 0; break;
+            case 2: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONA) == 1 ? 0x11 : 0; break;
+            case 3: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONB) == 0 ? 0x20 : 0; break;
+            case 3: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONB) == 1 ? 0x21 : 0; break;
+            case 3: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONC) == 0 ? 0x30 : 0; break;
+            default: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONC) == 1 ? 0x31 : 0; break;
+        }
+        i += 1;
+        if (i == 7) i = 1;
+        return x;
+    }
+
+    basic.forever(() => {
+        if (kbCallback != null) {
+            let sta = patorlState();
+            if (sta != 0) {
+                for (let item of kbCallback) {
+                    if (item.key == sta) {
+                        item.action();
+                    }
+                }
+            }
+        }
+        basic.pause(50);
+    })
 }
