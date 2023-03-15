@@ -7,6 +7,7 @@
 
 let inputString = ""
 let distance = 0
+let ready = 0
 
 enum Motor_Write {
     //% block="Left"
@@ -263,6 +264,7 @@ namespace PTKidsBITRobotPRO {
         sendDataSerial("SP," + power)
         basic.pause(10)
         serial.redirectToUSB()
+        ready = 1
     }
 
     // //% group="Movement Control"
@@ -287,7 +289,8 @@ namespace PTKidsBITRobotPRO {
     //% degree.defl=45
     export function spinDegree(degree: number): void {
         sendDataSerial("TD," + degree)
-        serial.readLine()
+        // serial.readLine()
+        while (!(serial.readLine().includes("OK")))
         basic.pause(10)
         serial.redirectToUSB()
     }
@@ -575,7 +578,8 @@ namespace PTKidsBITRobotPRO {
         if (sensor == LED_FB.Front) _sensor = "f"
         else if (sensor == LED_FB.Back) _sensor = "b"
         sendDataSerial("TL," + _direction + "," + _sensor + "," + speed + "," + align)
-        serial.readLine()
+        // serial.readLine()
+        while (!(serial.readLine().includes("OK")))
         basic.pause(10)
         serial.redirectToUSB()
     }
@@ -594,7 +598,8 @@ namespace PTKidsBITRobotPRO {
     export function ForwardTIME(direction: Forward_Direction, time: number, speed: number, kp: number, kd: number) {
         if (direction == Forward_Direction.Forward) sendDataSerial("FT," + speed + "," + kp + "," + kd + "," + time)
         else if (direction == Forward_Direction.Backward) sendDataSerial("BT," + speed + "," + kp + "," + kd + "," + time)
-        serial.readLine()
+        // serial.readLine()
+        while (!(serial.readLine().includes("OK")))
         basic.pause(10)
         serial.redirectToUSB()
     }
@@ -637,7 +642,8 @@ namespace PTKidsBITRobotPRO {
         else if (stop_position == Stop_Position.Back) _stop_position = "b"
         if (direction == Forward_Direction.Forward) sendDataSerial("FC," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position + "," + count)
         else if (direction == Forward_Direction.Backward) sendDataSerial("BC," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position + "," + count)
-        serial.readLine()
+        // serial.readLine()
+        while (!(serial.readLine().includes("OK")))
         basic.pause(10)
         serial.redirectToUSB()
     }
@@ -664,7 +670,8 @@ namespace PTKidsBITRobotPRO {
         else if (stop_position == Stop_Position.Back) _stop_position = "b"
         if (direction == Forward_Direction.Forward) sendDataSerial("FL," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
         else if (direction == Forward_Direction.Backward) sendDataSerial("BL," + speed + "," + kp + "," + kd + "," + _intersection + "," + _stop_position)
-        serial.readLine()
+        // serial.readLine()
+        while (!(serial.readLine().includes("OK")))
         basic.pause(10)
         serial.redirectToUSB()
     }
@@ -723,7 +730,7 @@ namespace PTKidsBITRobotPRO {
     }
 
     let x: number
-    let i: number = 1;
+    let i: number = 1
     function patorlState(): number {
         switch (i) {
             case 1: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONA) == 0 ? 0x10 : 0; break;
@@ -734,21 +741,21 @@ namespace PTKidsBITRobotPRO {
             default: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONC) == 1 ? 0x31 : 0; break;
         }
         i += 1;
-        if (i == 7) i = 1;
+        if (i == 7) i = 1
         return x;
     }
 
     basic.forever(() => {
-        if (kbCallback != null) {
-            let sta = patorlState();
+        if (kbCallback != null && ready == 1) {
+            let sta = patorlState()
             if (sta != 0) {
                 for (let item of kbCallback) {
                     if (item.key == sta) {
-                        item.action();
+                        item.action()
                     }
                 }
             }
         }
-        basic.pause(50);
+        // basic.pause(50)
     })
 }
