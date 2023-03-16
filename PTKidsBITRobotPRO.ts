@@ -7,7 +7,6 @@
 
 let inputString = ""
 let distance = 0
-let ready = 0
 
 enum Motor_Write {
     //% block="Left"
@@ -242,6 +241,15 @@ namespace PTKidsBITRobotPRO {
         serial.writeLine(data)
     }
 
+    //% group="Initialize"
+    /**
+     * Initialize Robot
+     */
+    //% block="Initialize Robot"
+    export function initialize(): void {
+        basic.pause(1500)
+    }
+
     //% group="Movement Control"
     /**
      * Stop all Motor
@@ -264,7 +272,6 @@ namespace PTKidsBITRobotPRO {
         sendDataSerial("SP," + power)
         basic.pause(10)
         serial.redirectToUSB()
-        ready = 1
     }
 
     // //% group="Movement Control"
@@ -746,7 +753,7 @@ namespace PTKidsBITRobotPRO {
     }
 
     basic.forever(() => {
-        if (kbCallback != null && ready == 1) {
+        if (kbCallback != null && control.millis() > 2000) {
             let sta = patorlState()
             if (sta != 0) {
                 for (let item of kbCallback) {
