@@ -387,11 +387,13 @@ namespace PTKidsBITRobotPRO {
     export function servoWrite(servo: Servo_Write, degree: number): void {
         if (servo == Servo_Write.S0) {
             sendDataSerial("SC,0," + degree)
+            while (!(serial.readLine().includes("OK")))
             basic.pause(10)
             serial.redirectToUSB()
         }
         else if (servo == Servo_Write.S1) {
             sendDataSerial("SC,1," + degree)
+            while (!(serial.readLine().includes("OK")))
             basic.pause(10)
             serial.redirectToUSB()
         }
@@ -753,7 +755,7 @@ namespace PTKidsBITRobotPRO {
     }
 
     basic.forever(() => {
-        if (kbCallback != null && control.millis() > 2000) {
+        if (kbCallback != null && control.millis() > 5000) {
             let sta = patorlState()
             if (sta != 0) {
                 for (let item of kbCallback) {
