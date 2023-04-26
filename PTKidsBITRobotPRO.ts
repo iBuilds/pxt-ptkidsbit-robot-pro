@@ -745,8 +745,8 @@ namespace PTKidsBITRobotPRO {
             case 1: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONA) == 0 ? 0x10 : 0; break;
             case 2: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONA) == 1 ? 0x11 : 0; break;
             case 3: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONB) == 0 ? 0x20 : 0; break;
-            case 3: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONB) == 1 ? 0x21 : 0; break;
-            case 3: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONC) == 0 ? 0x30 : 0; break;
+            case 4: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONB) == 1 ? 0x21 : 0; break;
+            case 5: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONC) == 0 ? 0x30 : 0; break;
             default: x = PTKidsBITRobotPRO.buttonRead(Button_Name.BUTTONC) == 1 ? 0x31 : 0; break;
         }
         i += 1;
