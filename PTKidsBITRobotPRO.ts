@@ -250,6 +250,7 @@ namespace PTKidsBITRobotPRO {
     //% block="Initialize Robot"
     export function initialize(): void {
         basic.pause(1500)
+        motorStop()
     }
 
     //% group="Movement Control"
