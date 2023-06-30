@@ -7,7 +7,7 @@
 
 let inputString = ""
 let forward_normal_state = 0
-let distance = 0
+let distance = 999
 let timer_read_distance = 0
 
 enum Motor_Write {
@@ -479,22 +479,16 @@ namespace PTKidsBITRobotPRO {
      */
     //% block="GETDistance"
     export function distanceRead(): number {
-        if (control.millis() - timer_read_distance > 100) {
-            for (let i = 0; i < 3; i++) {
-                sendDataSerial("RD")
-                inputString = serial.readString()
-                basic.pause(10)
-            }
-        }
-        else {
+        for (let i = 0; i < 3; i++) {
             sendDataSerial("RD")
             inputString = serial.readString()
+            basic.pause(10)
         }
-        inputString = inputString.substr(0, inputString.length - 2)
+        // inputString = inputString.substr(0, inputString.length - 2)
         if (parseFloat(inputString) > 0) {
             distance = parseFloat(inputString)
         }
-        basic.pause(10)
+        // basic.pause(10)
         serial.redirectToUSB()
         timer_read_distance = control.millis()
         return distance
@@ -772,7 +766,7 @@ namespace PTKidsBITRobotPRO {
     }
 
     basic.forever(() => {
-        if (kbCallback != null && control.millis() > 5000) {
+        if (kbCallback != null && control.millis() > 1000) {
             let sta = patorlState()
             if (sta != 0) {
                 for (let item of kbCallback) {
