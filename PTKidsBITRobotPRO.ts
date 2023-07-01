@@ -766,7 +766,7 @@ namespace PTKidsBITRobotPRO {
     }
 
     basic.forever(() => {
-        if (kbCallback != null && control.millis() > 1000) {
+        if (kbCallback != null && control.millis() > 3000) {
             let sta = patorlState()
             if (sta != 0) {
                 for (let item of kbCallback) {
