@@ -401,6 +401,7 @@ namespace PTKidsBITRobotPRO {
             basic.pause(10)
             serial.redirectToUSB()
         }
+        basic.pause(20)
     }
 
     //% group="Sound"
