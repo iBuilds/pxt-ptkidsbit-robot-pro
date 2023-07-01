@@ -6,7 +6,6 @@
  */
 
 let inputString = ""
-let forward_normal_state = 0
 let distance = 999
 let timer_read_distance = 0
 
@@ -262,7 +261,6 @@ namespace PTKidsBITRobotPRO {
         sendDataSerial("MC,0,0")
         basic.pause(10)
         serial.redirectToUSB()
-        forward_normal_state = 0
     }
 
     //% group="Movement Control"
@@ -582,6 +580,24 @@ namespace PTKidsBITRobotPRO {
 
     //% group="Line Follower"
     /**
+     * Line Follower Forward Ultrasonic Distance
+     */
+    //% block="Distance %distance|Speed %base_speed|KP %kp|KD %kd"
+    //% speed.min=0 speed.max=255
+    //% time.shadow="timePicker"
+    //% speed.defl=70
+    //% kp.defl=0.15
+    //% kd.defl=1
+    //% distance.defl=10
+    export function ForwardLineDistance(distance: number, speed: number, kp: number, kd: number) {
+        sendDataSerial("FD," + speed + "," + kp + "," + kd + "," + distance)
+        while (!(serial.readLine().includes("OK")))
+            basic.pause(10)
+        serial.redirectToUSB()
+    }
+
+    //% group="Line Follower"
+    /**
      * Turn Left or Right Follower Line Mode
      */
     //% block="Turn   %turn|Sensor %sensor|Align  %align|Speed\n %speed"
@@ -692,25 +708,6 @@ namespace PTKidsBITRobotPRO {
         while (!(serial.readLine().includes("OK")))
         basic.pause(10)
         serial.redirectToUSB()
-    }
-
-    //% group="Line Follower"
-    /**
-     * Basic Line Follower
-     */
-    //% block="Direction %Forward_Direction|Speed %base_speed|KP %kp|KD %kd"
-    //% speed.min=0 min_speed.max=255
-    //% speed.defl=70
-    //% kp.defl=0.15
-    //% kd.defl=1
-    export function Follower(direction: Forward_Direction, speed: number, kp: number, kd: number) {
-        if (forward_normal_state == 0) {
-            if (direction == Forward_Direction.Forward) sendDataSerial("FN," + speed + "," + kp + "," + kd)
-            else if (direction == Forward_Direction.Backward) sendDataSerial("BN," + speed + "," + kp + "," + kd)
-            basic.pause(5)
-            serial.redirectToUSB()
-            forward_normal_state = 1
-        }
     }
 
     //% group="Line Follower"
